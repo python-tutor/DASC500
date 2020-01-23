@@ -1,0 +1,170 @@
+---
+output: html_document
+---
+
+## Linear Regression
+
+- Simple approach for supervised learning
+
+- A useful tool for predicting a quantitative response
+
+- Is a useful and widely used statistical learning method
+
+- Serves as a good jumping-off point for newer approaches: 
+
+    + Many statistical learning algorithms are generalizations or extensions of linear regression
+    
+    + Important to understand linear regression before studying more complex learning algorithms
+
+## Overview of Linear Regression
+
+- This tutorial[^islr] serves as an introduction to linear regression. 
+
+    1. Replication requirements: What you'll need to reproduce the analysis in this tutorial
+    2. Preparing our data: Prepare our data for modeling
+    3. Simple linear regression: Predicting a quantitative response $Y$ with a single predictor variable $X$
+    4. Multiple linear regression: Predicting a quantitative response $Y$ with multiple predictor variables $X_1, X_2, \dots, X_p$
+    5. Incorporating interactions: Removing the additive assumption
+    6. Additional considerations: A few other considerations to know about
+
+# Replication Requirements
+
+## Preparing the data
+
+- This lecture uses the [advertising](http://www-bcf.usc.edu/~gareth/ISL/Advertising.csv) data set made available by the authors of the text [An Introduction to Statistical Learning](http://www-bcf.usc.edu/~gareth/ISL/index.html)
+
+- The data set contains four columns of advertising features captured across 200 markets
+
+    + `TV`: Money spent on television advertising (in thousands of dollars)
+    + `radio`: Money spent on radio (in thousands of dollars)
+    + `newspaper`: Money spent on newspaper advertising (in thousands of dollars)
+    + `sales`: money made in sales 
+
+- The question to be addressed by analyzing this data set
+
+    + Is there are relationship between `Sales` and the way that advertising dollars are spent
+    + What type of advertising provides the greatest impact on `Sales`
+    
+- First, import the Python libraries we'll need
+
+```{python import}
+import random
+import numpy as np
+import pandas as pd
+import seaborn as sb
+import matplotlib.pyplot as plt
+import scipy as sp
+import statsmodels.api as sm
+```
+
+- Then, pull in the data from the CSV file and store it as a `pandas` DataFrame using `read_csv()`
+
+```{python}
+data_url = "http://faculty.marshall.usc.edu/gareth-james/ISL/Advertising.csv"
+
+df = pd.read_csv(data_url)
+```
+
+# Replication Requirements
+
+- Note this results in an un-needed column containing the row numbers
+
+```{python advertising_head1}
+df.head()
+```
+
+# Replication Requirements
+
+- Instead, use the `usecols` argument to select which columns we want to extract
+
+- Note that we supply these column names as a list using `{ }`
+
+```{python}
+df2 = pd.read_csv(data_url,
+                  usecols = {'TV','newspaper','radio','sales'})
+
+df2.head()
+```
+
+# Preparing Our Data
+
+- Initial discovery of relationships is usually done with a training set while a test set is used for evaluating whether the discovered relationships hold. 
+
+- More formally, a training set is a set of data used to discover potentially predictive relationships. 
+
+- A test set is a set of data used to assess the strength and utility of a predictive relationship.  
+
+- In a later tutorial we will cover more sophisticated ways for training, validating, and testing predictive models 
+
+- For the time being we'll use a conventional 60% / 40% split where we training our model on 60% of the data and then test the model performance on 40% of the data that is withheld
+
+# Preparing Our Data
+
+```{python}
+rows = range(df2.shape[0])
+
+train_rows = random.sample(rows, 
+                           int(0.6 * len(rows)))
+
+test_rows = list(set(rows) - set(train_rows))
+
+train_data, test_data = df2.iloc[train_rows], df2.iloc[test_rows]
+
+train_data.shape
+test_data.shape
+```
+
+# Simple Linear Regression
+
+- Simple linear regression is a straightforward approach for predicting a quantitative response $Y$ on the basis of a single predictor variable $X$. 
+
+- Assumes there is an approximately a linear relationship between $X$ and $Y$
+
+- Using the advertising data, suppose we wish to model the relationship between the TV budget and sales.  We can write this as:
+
+$$
+Y = \beta_0 + \beta_1X + \epsilon
+$$
+
+
+
+- where: 
+
+    + $Y$ represents *sales*
+    + $X$ represents *TV advertising budget*
+    + $\beta_0$ is the intercept
+    + $\beta_1$ is the coefficient (slope term) representing the linear relationship
+    + $\epsilon$ is a mean-zero random error term
+
+# Model Building
+
+To build a simple learn regression model in Python we use the formula notation of $Y \sim X$.
+
+```{python}
+X = train_data[{"TV"}]
+X = sm.add_constant(X)
+y = train_data["sales"]
+
+mod = sm.OLS(y, X)
+
+modfit = mod.fit()
+
+print(modfit.summary())
+```
+
+```{python, echo=FALSE}
+prm_0 = modfit.params[0]
+prm_1 = modfit.params[1]
+```
+
+So, we have \[\text{sales} = `r round(py$prm_0, 4)` + `r round(py$prm_1, 4)`X + \epsilon\]
+
+```{python}
+X_new = test_data["TV"]
+X_new = sm.add_constant(X_new)
+test_data["predictions"] = modfit.predict(X_new) # make the predictions by the model
+
+test_data
+```
+
+In the background the `lm`, which stands for "linear model", is producing the best-fit linear relationship by minimizing the *least squares* criterion (alternative approaches will be considered in later tutorials).  This fit can be visualized in the following illustration where the "best-fit" line is found by minimizing the sum of squared errors (the errors are represented by the vertical black line segments).

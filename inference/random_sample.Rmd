@@ -1,0 +1,72 @@
+---
+output: html_document
+---
+
+# Random Samples
+
+```{r, echo=FALSE}
+obs_x = "$x_{1},\\ldots,x_{n}$"
+rv_X = "$X_1,\\ldots,X_n$"
+eq2 = "$F_{_{X}}(x)$"
+E_x = "$\\operatorname{E}[x]$"
+eq13 = "\\xi = [x_1,\\ldots,x_n]"
+eq14 = "$\\Xi = [X_1,\\ldots,X_n]$"
+eq15 = "F_{_{\\Xi}}(\\xi) = F_{_{X}}(x_1)\\times\\ldots\\times F_{_{X}}(x_n)"
+```
+
+## Defining terms
+
+- The $n$ observations we collect during a test - denoted as $`r eq13`$ - are realizations of random variables `r eq14`
+
+- When a random sample contains $n$ realizations `r obs_x` of $n$ random variables $`r eq13`$ we say that the sample has size $n$ (or that the sample size is $n$) and an individual realization $x_{i}$ is referred to as an observation
+
+<blockquote>
+<br>
+<br>
+<red>Incorrect wording:</red> $n$ independent realizations of the random variable $X$
+<br>
+<br>
+<green>Correct wording:</green> realizations of $n$ independent random variables `r rv_X`
+</blockquote>
+
+- In the simplest case the random variables `r rv_X` are independent and have a common distribution function `r eq2` and we say that `r rv_X` are independent and indentically distributed, or IID
+
+- IID Example
+
+    + The lifetime of our widgets is represented by the random variable $X$, whose distribution function `r eq2` is unknown. 
+    + Suppose we independently observe the lifetimes of $10$ widgets and denote these realizations by $x_{1},x_{2},\ldots,x_{10}$
+    + We're interested in the expected value of $X$, which is an unknown characteristic of `r eq2`
+    + We infer `r E_x` from the data, and estimate `r E_x` with the sample mean $\bar{x} = \sum_{i = 1}^{10} x_i/10$
+    + The observed data $x_{1},x_{2},\ldots,x_{10}$ constitute our sample and `r E_x` is the quantity about which we are making a statistical inference
+
+- While in the simplest case `r rv_X` are independent random variables, more complicated cases are possible
+
+    + `r rv_X` are not independent
+    + `r rv_X` are random vectors having a common joint distribution function
+    + `r rv_X` do not have a common probability distribution
+
+- In a more general sense we say: _A sample $\xi$ is the realization of a random vector $\Xi$_
+
+- The distribution function of $\Xi$, denoted by $F_{_{\Xi}}(\xi)$, is the unknown distribution function that constitutes the object of inference
+
+- Therefore, "sample" is just a synonym of "realization of a random vector". The following examples show how this general definition accommodates the special cases mentioned above
+
+## Example 1: Independent and Identically Distributed
+
+- We observe $n$ realizations `r obs_x` of $n$ independent random variables `r rv_X` having a common distribution function `r eq2`
+
+- The sample is the $n$-dimensional vector $`r eq13`$, which is a realization of the random vector `r eq14`
+
+- The joint distribution function of $\Xi$ is 
+
+$$
+`r eq15`
+$$
+
+## Example 2: Identically Distributed, but not Independent
+
+- We observe $n$ realizations `r obs_x` of $n$ random variables `r rv_X` that are not independent but have a common distribution function `r eq2`
+
+- The sample is again the $n$-dimensional vector $`r eq13`$, which is a realization of the random vector `r eq14`
+
+- However, in this case the joint distribution function $F_{_{\Xi}}(\xi)$ can no longer be written as the product of the distribution functions of `r rv_X`

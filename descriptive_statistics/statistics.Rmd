@@ -1,0 +1,268 @@
+---
+title: "Introduction to Statistics with Python"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+output: powerpoint_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = T)
+library(reticulate)
+```
+
+<style>
+a { font-weight: bold; }
+</style>
+
+# Overview
+
+Statistics is a subset of the field of applied mathematics concerned with analyzing data.  More specifically, statistics involves the following:
+
+- Collecting Data 
+- Organizing Data
+- Displaying and Presenting Data
+- Interpreting Data
+
+Statistical methods are used to make descriptions and/or inferences about some population. Descriptions are numerical measures that summarize the data. Inferences are conclusions reached as result of combining data analyses and reasoning.  It's not surprising then that statistical methods used in data analyses are often sub-divided into two main classes - descriptive statisticals and inferential statistics.  
+
+Descriptive statistics refer to the use of familiar tools like the mean and standard deviation of a sample to summarize a data set.  Inferential statistics refer to the use of tools that are based on the assumption that the observations contained in a data set can randomly vary, and then draw conclusions from it. 
+
+```{block}
+introduce samples and populations
+```
+
+In this presentation you'll learn how to use Python to implement various methods from both of these areas.  It will not be assumed that you have either a) the Python language installed on your machine or b) experience using Python.  Rather, you'll use a cloud based interface to work with the code.
+
+## Descriptive Statistics
+
+Descriptive statistics are measures used to represent data observed from either an entire population or a sample of a population. Descriptive statistics help analysts communicate the features of a specific data set by giving short summaries about the measures of central tendency or the measures of dispersion (variability).  Measures of central tendency describe the center position of a distribution for a data set. The most commonly used measures of central tendency include the mean, median, and mode. 
+
+Measures of variability, or the measures of spread, aid in analyzing how spread-out the distribution is for a set of data. For example, while a measure of central tendency may describe the average value for a data set, it does not describe how the data is distributed within the set. So, while the average of the data may be 65 out of 100, there can still be data points at both 1 and 100. Measures of variability help communicate this by describing the shape and spread of the data set. the most commonly used measures of variability include the standard deviation, variance, the minimum and maximum variables, and the kurtosis and skewness, Range, quartiles, absolute deviation.
+
+### Measures of Central Tendency
+
+In the following sections we'll take a look at several functions available in the Python <a target=" "  href="https://docs.python.org/3/library/statistics.html">`statistics`</a> module for calculating the central tendency for a dataset.
+
+```{python}
+import statistics as st
+```
+
+#### <a target=" " href="https://docs.python.org/3/library/statistics.html#statistics.mean">`mean()`</a>
+
+The `mean()` function returns the arithmetic average of a set of numeric values stored in a data object (If called on an empty data object, the function will throw a `StatisticsError`).  For the set of values $x_1,x_2, \ldots, x_N$ the mean, denoted by the Greek symbol $\mu$, is calculated as
+
+$$
+\mu = \frac{\sum_{i = 1}^{N}x_i}{N} = \frac{x_1 + x_2 + \cdots + x_N}{N}.
+$$
+
+The sample mean gives an unbiased estimate of the true population mean, so when taken on average over all the possible samples, `mean()` converges on the true mean of the entire population. If data represents the entire population rather than a sample, then `mean(data)` is equivalent to calculating the true population mean $\mu$.
+
+In the most simple case, we can create an array of values and find the mean on these values by passing the array to the `mean()` function. 
+
+```{python}
+nums = [-2,-4,1,2,3,5,7,9]
+st.mean(nums)
+```
+
+Similarly, we can create a dictionary of value:key pairs and the `mean()` function will compute the mean of the values (assuming all of the the values are numeric).
+
+```{python}
+Dict = {1:"one",2:"two",3:"three"}
+
+Dict
+
+st.mean(Dict)
+```
+
+In the code chunk below I import three Python modules
+
+- `numpy` <a target=" " href="https://docs.scipy.org/doc/numpy-1.15.1/index.html">`r emojifont::fontawesome("fa-external-link")`</a>
+
+- `seaborn` <a target=" " href="https://seaborn.pydata.org/index.html">`r emojifont::fontawesome("fa-external-link")`</a>
+
+- `matplotlib` <a target=" " href="https://matplotlib.org/">`r emojifont::fontawesome("fa-external-link")`</a>
+create an array or random integers (length 400) using the `numpy` function <a target=" " href="https://docs.scipy.org/doc/numpy-1.15.1/reference/generated/numpy.random.randint.html">`random.randint()`</a>.  Then, I plot the data as a histogram using the `distplot()` function from the `seaborn` library.  Note that `seaborn` is built on top of the `matplotlib.pylot` library so we need to import both of these in addition to `numpy`.
+
+```{python randint}
+import numpy as np
+import seaborn as sb
+import matplotlib.pyplot as plt
+
+N_obs = 4000
+
+obs = np.random.normal(loc = 1, scale = 10000, size = N_obs)
+
+# Settings
+sb.set_style("whitegrid")
+
+# Create histogram
+plot = sb.distplot(obs, kde = False, bins = int(N_obs / 10))
+
+# add vertical line to the plot to show the location of the mean 
+plot = plt.axvline(st.mean(obs), 0,1, color = 'red')
+
+plt.show(plot)
+```
+
+Note that the mean is strongly affected if the data are skewed (aka non-symmetric).  Thus, the mean should not be considered to be a robust estimator of the central location for every set of values.  For more robust measures of central location, see the `median()` and `mode()` functions below.
+
+```{python lognormal}
+obs2 = np.random.lognormal(mean = 1, sigma = 0.5, size = 400)
+
+# Create histogram
+plot2 = sb.distplot(obs2, kde = False, bins = 75)
+
+# add vertical line at mean 
+plot2 = plt.axvline(st.mean(obs2), 0,1, color = 'red')
+
+plt.show()
+```
+
+
+#### `mode()`
+
+This function returns the most common value in a set of data. This gives us a great idea of where the center lies.
+
+```{python}
+nums=[1,2,3,5,7,9,7,2,7,6]
+st.mode(nums)
+```
+
+
+```{python}
+st.mode(['A','B','b','B','A','B'])
+```
+
+
+#### `median()`
+
+For data of odd length, this returns the middle item; for that of even length, it returns the average of the two middle items.
+
+```{python}
+st.median(nums) #(5+6)/2
+```
+
+#### `harmonic_mean()`
+
+This function returns the harmonic mean of the data. For three values a, b, and c, the harmonic mean is-
+3/(1/a + 1/b +1/c)
+It is a measure of the center; one such example would be speed.
+
+```{python}
+st.harmonic_mean([2,4,9.7])
+```
+
+For the same set of data, the arithmetic mean would give us a value of 5.233333333333333.
+
+#### `median_low()`
+
+When the data is of an even length, this provides us the low median of the data. Otherwise, it returns the middle value.
+
+```{python}
+st.median_low([1,2,4])
+```
+
+
+```{python}
+st.median_low([1,2,3,4])
+```
+
+
+#### `median_high()`
+
+Like median_low, this returns the high median when the data is of an even length. Otherwise, it returns the middle value.
+
+```{python}
+st.median_high([1,2,4])
+```
+
+
+```{python}
+st.median_high([1,2,3,4])
+```
+
+
+Let’s Learn CGI Programming in Python with Functions and Modules
+
+#### `median_grouped()`
+
+This function uses interpolation to return the median of grouped continuous data. This is the 50th percentile.
+
+```{python}
+st.median([1,3,3,5,7])
+```
+
+```{python}
+st.median_grouped([1,3,3,5,7], interval = 1)
+```
+
+```{python}
+st.median_grouped([1,3,3,5,7], interval = 2)
+```
+
+#### `variance()`
+
+This returns the variance of the sample. This is the second moment about the mean and a larger value denotes a rather spread-out set of data. You can use this when your data is a sample out of a population.
+
+```{python} 
+st.variance(nums)
+```
+
+#### `pvariance()`
+
+This returns the population variance of data. Use this to calculate variance from an entire population.
+
+```{python} 
+st.pvariance(nums)
+```
+
+#### `stdev()`
+
+This returns the standard deviation for the sample. This is equal to the square root of the sample variance.
+
+```{python}
+st.stdev(nums)
+```
+Read about Python Namespace and Variable Scope – Local and Global Variables
+
+#### `pstdev()`
+
+This returns the population standard deviation. This is the square root of population variance.
+
+```{python} 
+st.pstdev(nums)
+```
+
+The statistics module defines one exception-
+exception statistics.StatisticsError
+This is a subclass of ValueError.
+
+#### `pandas` with Descriptive Statistics in Python
+We can do the same things using pandas too-
+
+```{python} 
+import pandas as pd
+```
+
+```{python} 
+df=pd.DataFrame(nums)
+```
+
+```{python} 
+df.mean()
+```
+
+Follow this to know more about Python Pandas
+
+```{python} 
+df.mode()
+```
+
+```{python} 
+df.std() #Standard deviation
+```
+
+```{python} 
+df.skew()
+```
+
+A value less than -1 is skewed to the left; that greater than 1 is skewed to the right. A value between -1 and 1 is symmetric.

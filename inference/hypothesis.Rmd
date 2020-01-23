@@ -1,0 +1,86 @@
+---
+output: html_document
+---
+
+# Hypothesis Testing
+
+## Overview
+
+- Suppose a population of observations exists to which no treatment has been applied  
+
+    + We call this the “comparison group” of the "control group"
+    + We know the parameters associated with this population (i.e. the mean and/or standard deviation). 
+
+- Now suppose that another population exists that's similar to the control group, except that some treatment has been applied
+
+    + We call this the treatment group or experimental group 
+    + You do not know the parameters associated with this population
+
+- Samples are drawn from this latter population and the statistics derived from the sample serve as the estimates of the unknown population parameters
+
+- A hypothesis statement is created to describe the statistical relationship between the two data sets - this statement contains two elements:
+
+    + A Null hypothesis $H_O$ proposes that a statistically significant relationship <u>does</u> exist between the two data sets
+    + An alternative hypothesis $H_A$ proposes that a statistically significant relationship <u>does not</u> exist between the two data sets 
+
+- The comparison is deemed statistically significant if the relationship between the data sets would be an unlikely realization of the null hypothesis according to a threshold probability -- the significance level
+
+- Hypotheses are helpful in determining what outcomes of a study would lead to a rejection of the null hypothesis for a pre-specified level of significance
+
+- Distinguishing between the null and alternative hypotheses is aided by considering two types of errors
+
+    + Type 1 error: Occurs when the null hypothesis is wrongly rejected
+    + Type 2 error: Occurs when the null hypothesis is wrongly not rejected
+
+```{r, echo=FALSE}
+knitr::include_graphics("../resources/images/type_one_error.jpg")
+```
+
+- Hypothesis tests based on statistical significance are akin to expressing confidence intervals
+
+    + Every hypothesis test based on significance can be obtained via a confidence interval
+    + Every confidence interval can be obtained via a hypothesis test based on significance
+
+## Hypothesis Testing Steps
+
+- Step 1) Develop the research statement (hypothesis). That is, state what you hope to discover. Interrogative form is common.
+
+    + Is this hypothesis testable? As attractive as it may be, if a hypothesis cannot be tested, it has little utility to empirical investigators.
+
+    + Hypotheses are not testable if the concepts (constructs) to which they refer are not adequately (operationally) defined. To facilitate clarity in communication, operational definitions (procedures that define variables) provide the concrete means of evaluating whether a hypothesis constains concepts that can be observed.
+
+    + Hypotheses are also untestable if they are circular. That is, the event or outcome becomes an explanation for the event. For example: “Your eight-year-old son is distractable in school because he has attention deficit hyperactivity disorder.” 
+
+- Step 2) Set up the null hypothesis ($H_0$)
+
+    + Hypothesis that assumes no difference between treatment and comparison groups -- that the treatment has no effect
+    + Note that this assumption is the exact opposite of what you wish to discover
+
+- Step 3) Construct the sampling distribution based on the assumption that $H_0$ is true
+
+    + Choose a particular test statistic (e.g., $z$, $t$, $F$) based on particular assumptions about the population
+    + Draw a sample, and collect data
+
+- Step 4) Compare the sample statistic to the the distribution
+
+    + What is likelihood of obtaining the observed result if the null hypothesis is true?
+
+- Step 5) Reject or fail to reject the $H_0$ depending on the probability
+
+    + If the likelihood of the observed difference between means is small we reject the null hypothesis and conclude that the treatment did have an effect
+    + When the difference is large, and hence unlikely due to chance variation, we fail to accept the null hypothesis. Then the difference is said to be “statistically significant.”
+
+## Specialized Parametric Hypothesis tests
+
+- Several parametric tests exist (e.g., $z$, $t$, $F$, $\chi^2$)
+
+    + These tests require the data meet certain assumptions before the test can be performed
+    + If the data do not meet these assumptions the results are, at best, meaningless, and at worst, misleading
+
+<!-- - Assumptions for the t-test: -->
+
+<!--     + Random sampling. -->
+<!--     + Scores in sample are independent of one another. -->
+<!--     + Sample comes from normal distribution. -->
+<!--     + Measurement scale is at least interval. -->
+<!--     + Population standard deviation is unknown and the sample standard deviation is known. -->

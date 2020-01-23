@@ -1,0 +1,274 @@
+---
+title: "DASC 500: Introduction to Data Analytics"
+subtitle: "A Gentle Introduction to Supervised Learning Algorithms"
+date: '`r format(Sys.Date(), "%d %B %Y")`'
+footer: "DASC 500 (Introduction Supervised Learning Algorithms)"
+author: "Maj Jason Freels PhD"
+output: 
+  slidy_presentation:
+    smart: no
+    fig_caption: yes
+graphics: yes
+---
+
+# Overview of Statistical Machine Learning Algorithms 
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.align = 'center')
+shiny::includeCSS("../resources/css/flatly-style.css")
+shiny::includeCSS("../resources/css/r-title.css")
+shiny::includeScript("../resources/js/jquery.min.js")
+shiny::includeScript("../resources/js/jkf-scroll.js")
+
+library(knitr)
+library(reticulate)
+library(rprojroot)
+knitr::knit_engines$set(python = reticulate::eng_python)
+knitr::opts_chunk$set(echo = TRUE, message = F, comment = NA, warning = F)
+root = find_root(is_git_root)
+```
+
+## Applied Review
+
+- `scikit-learn` (abbreviated in Python as `sklearn`) is the general machine learning package in Python's Data Science Ecosystem
+
+- Python has a lot of other statistics-oriented packages to meet various data science needs, including `scipy` and `statsmodels`
+
+- Machine Learning Overview
+
+- scikit-learn is a package for machine learning
+
+- You may hear this called modeling, predictive analytics, data mining, artificial intelligence, etc. But machine learning is a catch-all term for these things
+
+- Despite being broad, most machine learning methodologies and problems fit into two categories: supervised learning and unsupervised learning
+
+## Supervised vs Unsupervised Learning Algorithms
+
+- Supervised learning algorithms
+
+    + Pertain to data that includes both outputs (responses) **AND** inputs (features/factors/predictors) 
+    + Describe the relationship between the input(s) and the output(s) 
+    + Can be used predict new output(s) given new inputs(s)
+    + ***Basic idea***: supervised algorithms "learn" the functional relationship between a set of inputs and the output(s)
+
+- Unsupervised learning algorithms
+
+    + Pertain to data that includes **ONLY** inputs (features) 
+    + Partition (cluster) the data in a meaningful way
+    + ***Basic idea***: We DO NOT HAVE outputs that can be used to build a model
+
+## So, when would an unsupervised learning algorithm be used?
+
+- <focus>Clustering</focus> Used to split a data set into groups according to similarity
+ 
+- <focus>Anomaly detection</focus> Discover unusual observations in your dataset (i.e. fraudulent transactions or discovering faulty pieces of hardware)
+
+- <focus>Association mining</focus> Identify sets of items that frequently occur together in your dataset (i.e. basket analysis and targeted marketing) 
+
+- <focus>Latent variable models</focus> Used for data preprocessing (i.e. reducing the number of features in a data set or decomposing the data into multiple components)
+
+# Supervised learning algorithms can be divided into two main classes
+
+## Regression algorithms: when the output/response variable is numeric and continuous
+
+- Example applications of regression algorithms 
+
+    + Housing or stock prices
+    + Weather analysis
+    + Time series forecasting
+
+- The following algorithms can be used to model (describe) the relationship between inputs and outputs when the outputs are numeric and continuous
+
+    + Linear regression
+    + Polynomial regression
+    + Ridge regression
+    + Lasso regression
+    + ElasticNets
+    + Decision trees
+    + Random forests
+    + Gradient boosting methods
+    + Neural networks
+
+## Classification algorithms: when the output/response variable is discrete or categorical
+
+- Classification is focused on predicting/labeling a discrete output (categories)
+
+- There can be more that two (yes/no) categories
+
+- Example applications of classification algorithms
+
+    + Estimating a customer's satisfaction with a product they haven't tried before
+    + Predicting next month's sales
+    + Predicting the outcome of a sporting event
+    + Labeling whether a photo contains a cucumber or a zucchini
+
+- The following algorithms can be used to model (describe) the relationship between inputs and outputs when the outputs are discrete or categorical
+
+    + Logistic Regression
+    + Multinomial Regression
+    + Ordinal Regression
+    + Logit Regression
+    + Probit Regression
+    + Nearest Neighbors
+    + Decision Trees
+    + Random Forest
+    + Gradient Boosting
+    + Neural Networks
+
+# Model Complexity vs. Model Accuracy
+
+## The big picture of supervised learning algorithms
+
+- Before moving forward I want to make sure that you have a solid (yet high level) understanding of how supervised learning algorithms work under the hood
+
+    + For any example problem you can think of there exists a "perfect" function $f_{\text{perfect}}$ that perfectly describes the relationship between the inputs and the outputs
+    + If we could use $f_{\text{perfect}}$ all of our predictions would be "perfect" (i.e. there would be no errors)
+    + We will <focus>almost never</focus> be able to find $f_{\text{perfect}}$ because in the real world the relationship is too complex `r emo::ji("cry")` (sorry)
+    + Statistical learning algorithms use the inputs and outputs to "learn" the best representation of $f_{\text{perfect}}$
+    + This learned function will not be perfect, therefore let's call it  $f_{\text{imperfect}}$
+    + It should be obvious that if more data is available $f_{\text{imperfect}}$ will do a better job representing $f_{\text{perfect}}$
+    + What may not be obvious is that all algorithms are not equal -- some will do better than others regardless of how much data is available
+
+## Common elements of supervised learning algorithms 
+
+- All supervised learning algorithms have the following elements
+
+    + A data set that includes one or more inputs (features) and one or more outputs (responses)
+    + An assumed form of the model $f_{\text{imperfect}}$ that will represent $f_{\text{perfect}}$
+    + A set of parameters that can be used to tweak the shape of $f_{\text{imperfect}}$ (think of these a knob settings)
+    + A loss function that "learns" which parameter values result in the form of $f_{\text{imperfect}}$ that best represents $f_{\text{perfect}}$
+
+# Supervised learning Example
+
+## Elements of supervised learning algorithms: #1 Data
+
+- Suppose you're asked to create a model to describe the relationship between one set of inputs and one set of outputs 
+
+    + We'll call the set of inputs `x` and the set of outputs `y`
+    + Plotting the inputs and outputs shows the relationship between `x` and `y` in the figure below
+    + Looking at the plot we see that this is an "ideal" data set 
+
+```{r simpledata, fig.cap="Plot of some ideal data", echo=FALSE}
+library(ggplot2)
+# Create a data.frame object
+df <- data.frame(x = seq(0, 6, by = 0.5))
+
+# Add a "column" y to the data.frame df
+df$y <- 5 * df$x + 3
+
+# plot() opens a new "base" R graphics device
+ggplot(df, aes(x,y)) +
+  geom_point(colour = "blue", size = 2.5) +
+  theme_bw(base_size = 16)
+```
+
+## Elements of supervised learning algorithms: #2 an assumed form of $f_{\text{imperfect}}$
+
+- Observing the figure, there doesn't appear to be any uncertainty in the data as each point falls on a straight line
+
+- An obvious choice for a model to describe this data would be a function of the form $y = mx +b$ - the familiar equation for a line
+
+- Adding a plot of the line $y(x) = mx+b$ shows that a "perfect" model exists for our ideal data
+
+```{r perfect, fig.cap='Fitting the ideal data with a "perfect" model', echo=FALSE}
+# ggplot() opens a new ggplot2 graphics device
+ggplot(df, aes(x,y)) +
+  geom_line(colour = "red", size = 1.25) +
+  geom_point(colour = "blue", size = 2.5) +
+  theme_bw(base_size = 16)+
+  ylab(expression(y(x) == m%*%x + b))
+```
+
+## Elements of supervised learning algorithms: #3 parameter values
+
+- Now that we've chosen a functional form for $f_{\text{imperfect}}$ we turn our attention to the parameters of the model
+
+    + Every model comes with parameters -- the values assigned to these parameters affect how well $f_{\text{imperfect}}$ represent the relationship between `x` and `y`
+
+    + For our chosen $f_{\text{imperfect}}$ we see that there are two paramters the slope ($m$) and the intercept ($b$)
+    
+    + The question, of course is what are the correct values of the slope $m$ and the intercept $b$ that best represent the relationship between `x` and `y`
+
+    + For this ideal data set, we can determine these values using our knowledge of straight lines and our ability to read or we could read the value of the intercept directly from the plot as $b = 3$ 
+
+    + Using this value for $b$ we can choose any of the data points and solve for the slope $m = 5$ 
+
+- I know what you're thinking: What does this have to do with machine learning? 
+
+    + So far, nothing - but let's fix that
+    + Let's have the machine determine the parameter values that result in the best representation of the relationship between `x` and `y` constraining this relationship the form of $f_{\text{imperfect}}$ that we chose above
+    + Finding the best requires the use of optimization methods
+    + But before we can do any optimization we first need to answer the question <font color="red"><b>what exactly are we optimizing?</b></font>.  The answer is a <u>loss function (aka cost function)</u>. 
+    + If you're wondering: What is a loss function and how do I know which one to use? keep reading
+
+## Elements of supervised learning algorithms: #4 loss functions
+
+- To do this we need to a way to differentiate between good parameter values and bad parameter values
+
+- This is done by using what are called <focus>loss function</focus>
+
+- Loss functions are a key component in all supervised learning algorithms
+
+- In many cases, you don't have to choose a loss function you use to find the optimal parameter values 
+ 
+- Rather, it comes as part of a package deal with the modeling approach you choose (i.e. linear regression, logistic regression, etc.).  
+
+- You can, however, come up with your own loss function - so long as it produces meaningful results
+
+- For this example data, we can express a <u>naive</u> loss function as the difference between the observed output and the output returned by the proposed model
+
+$$
+Loss_{_{naive}}(\mathbf{y},\mathbf{x},m,b) = \sum_{i=1}^N y_i-m\times x_i-b.
+$$
+
+- Using this function, loss would simply be defined as the sum of the vertical distances between each observed output $y_i, i = 1,...,n$ and the output returned by the chosen model
+
+- The parameters $m$ and $b$ for the best-fit line correspond to model that has the minimum loss. 
+
+- For our "ideal" data, the points fall on a straight line and we would expect the loss value in this case to be zero
+
+- Thus far, we've chosen a functional form that we believe is a good representation of the data -- and a corresponding loss function
+
+- Now, let's use SciPy's `minimize()` function to find the values of of $m$ and $b$ minimize the loss function and results in a model that best-fits the data  
+
+Our optimization is carried out in the code chunk below.
+
+```{python naive_loss}
+def naive_loss(params, x,y):
+
+  if len(params) != 2: sys.exit("Need 2 parameters -- dummy!") 
+
+  m = params[0]
+  b = params[1]
+
+  loss = 0
+
+  for i in range(len(y)):
+    loss = loss + (y[i] - m * x[i] - b)**2
+
+  return(loss)
+```
+
+```{python}
+from scipy.optimize import minimize
+import numpy as np
+import sys
+
+x = np.arange(0,6,0.5)
+y = x * 5 + 3
+
+#naive_loss([5,1],[x],[y])
+
+res = minimize(naive_loss,
+               x0 = [0,0], 
+               args = (x,y))
+
+res
+```
+
+## How can I know which algorithm to choose?
+
+- Model selection is part art and part science
+
+```{r child="modeling_regression.Rmd", eval=!T}
+```

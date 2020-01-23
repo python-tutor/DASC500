@@ -1,0 +1,98 @@
+---
+output: html_document
+---
+
+# Statistical Estimation
+
+## Overview
+
+- Estimation refers to the use statistical procedures to make inferences about a population, based on information obtained from a random sample
+
+- There are two basic types of statistical procedures
+
+     + Parametric precedures: rely on assumptions about the shape of an underlying probability distribution (i.e. a normal distribution) that describes the population and about the form or parameters (i.e., means and standard deviations) of the assumed distribution
+     + Nonparametric models: rely on no or few assumptions about the shape of the underlying distribution or parameters of the population distribution from which the sample was drawn
+
+- In the sections below we formally define statistical models and show ways to compute various types of estimates
+
+- Throughout the remainder of this presentation we'll assume that parametric models will be used
+
+## Statistical Models
+
+- We previously defined a random sample $\xi$ as a realization of a vector of random variables, $\Xi$ 
+
+    + $\Xi$ has joint distribution function $F_{_{\Xi}}(\xi)$ 
+    + The observed random sample $\xi$ is used to infer some characteristics of $F_{_{\Xi}}(\xi)$ that are not already known 
+    + The properties and the characteristics of $F_{_{\Xi}}(\xi)$ that are already known before observing the sample are called a model for $\Xi$. 
+
+- Analysts use sample statistics to estimate population parameters
+
+    + The <span class="explain">sample mean $\bar{x}$</span><span class="tooltip">The mean computed for a random sample of observed data</span> is used to estimate the unknown mean of the population $\mu$ 
+    
+    + The <span class="explain">sample variance $\operatorname{Var}[x]$</span></span><span class="tooltip">The variance computed for a random sample of observed data</span>is used to estimate population proportions.
+
+- An estimate of a population parameter may be expressed in two ways:
+
+    + Point estimates: population parameter is estimated by a single value of a statistic (i.e. the sample mean $\bar{x} = \hat{\mu} is a point estimate of the population mean $\mu$)
+
+    + Interval estimate: population parameter is estimated by two numbers, between which the parameter is said to lie (i.e. $a < \hat{\mu} < b$ is an interval estimate of the population mean $\mu$
+
+# Point Estimates
+
+## Properties of point estimates
+
+- It is desirable that a statistic used as a point estimate for a population parameter be: 
+
+    1. Consistent - The larger the sample size, the more accurate the estimate should be 
+    2. Unbiased - The expectation of the observed values of many samples (“average observation value”) equals the corresponding population parameter
+    3. Most efficient - The estimator possessing the smallest variance out of all of the estimators that are consistent and unbiased <span class="explain">Note</span> <span class="tooltip">This often depends on the assumed underlying distribution of the population<br><br> For example, the mean is more efficient than the median (middle value) for the normal distribution but not for more “skewed” (asymmetrical) distributions.</span>
+
+## Methods to compute point estimates 
+
+- Several methods are used to calculate the estimator
+
+    + <span class="explain">The Bayesian method</span> <span class="tooltip">The Bayesian method differs from traditional methods by introducing a frequency function for the parameter being estimated<br><br> A drawback to the Bayesian method is that sufficient information on the distribution of the parameter is usually not available<br><br>An advantage is that the estimation can be easily adjusted as additional information becomes available</span> is named for the 18th-century English theologian and mathematician Thomas Bayes
+    + The moments method equates values of sample moments (functions describing the parameter) to population moments
+    + Maximum likelihood method (most common) uses differential calculus to determine the maximum of the probability function of a number of sample parameters
+
+# Interval Estimates
+
+## Confidence Intervals
+
+- A type of interval estimate used to express the uncertainty associated with a particular sampling method
+
+- Are preferred to point estimates, because confidence intervals indicate (a) the precision of the estimate and (b) the uncertainty of the estimate
+
+- Consists of three parts.
+
+    + A confidence level: describes the uncertainty of a sampling method
+    + A statistic: quantity about which the CI is being generated 
+    + A margin of error: describes the precision of the method
+    + The interval estimate of a confidence interval is defined by the sample statistic + margin of error
+
+- Example: compute an interval estimate of a population parameter
+
+    + We might describe this interval estimate as a $95\%$ confidence interval
+    + This means that if we used the same sampling method to select different samples and compute different interval estimates, the true population parameter would fall within a range defined by the sample statistic + margin of error $95\%$ of the time.
+
+## Confidence Level
+
+- The probability part of a confidence interval is called a confidence level
+
+- Describes the likelihood that a particular sampling method will produce a confidence interval that includes the true population parameter.
+
+- Interpreting a confidence level
+
+    + Suppose we collected all possible samples from a given population, and computed confidence intervals for each sample
+    + Some confidence intervals would include the true population parameter; others would not
+    + A $95\%$ confidence level means that $95\%$ of the intervals contain the true population parameter
+
+## Margin of Error
+
+- In a confidence interval, the range of values above and below the sample statistic is called the margin of error.
+
+- Interpreting the margin of error
+
+    + Suppose a newspaper conducts an election survey and reports that a candidate will receive 30% of the vote
+    + The newspaper states that the survey had a 5% margin of error and a confidence level of $95\%$
+    + These statements implies a confidence interval for which we are $95\%$ confident that the candidate will receive between $25\%$ and $35\%$ of the vote

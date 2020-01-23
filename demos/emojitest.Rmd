@@ -1,0 +1,21 @@
+---
+title: "Untitled"
+author: "Jason Freels"
+date: "1/2/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+In the code chunk below I import three Python modules
+
+- `numpy` <a target=" " href="https://docs.scipy.org/doc/numpy-1.15.1/index.html">`r emojifont::fontawesome("fa fa-external-link")`</a>
+
+- `seaborn` <a target=" " href="https://seaborn.pydata.org/index.html">`r emojifont::fontawesome("fa-external-link")`</a>
+
+- `matplotlib` <a target=" " href="https://matplotlib.org/">`r emojifont::fontawesome("fa-external-link")`</a>
+create an array or random integers (length 400) using the `numpy` function <a target=" " href="https://docs.scipy.org/doc/numpy-1.15.1/reference/generated/numpy.random.randint.html">`random.randint()`</a>.  Then, I plot the data as a histogram using the `distplot()` function from the `seaborn` library.  Note that `seaborn` is built on top of the `matplotlib.pylot` library so we need to import both of these in addition to `numpy`.

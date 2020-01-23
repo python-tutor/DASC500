@@ -1,0 +1,297 @@
+---
+title: "DASC 500: Introduction to Data Analytics"
+subtitle: "A Gentle Introduction to Git and GitHub"
+date: '`r format(Sys.Date(), "%d %B %Y")`'
+footer: "An Gentle Introduction to Git and GitHub"
+author: "Maj Jason Freels PhD"
+output: 
+  slidy_presentation:
+    smart: no
+    fig_caption: yes
+graphics: yes
+---
+
+# Overview
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.align = 'center')
+shiny::includeCSS("../resources/css/flatly-style.css")
+shiny::includeCSS("../resources/css/r-title.css")
+shiny::includeScript("../resources/js/jquery.min.js")
+shiny::includeScript("../resources/js/jkf-scroll.js")
+
+library(knitr)
+library(reticulate)
+library(rprojroot)
+knitr::knit_engines$set(python = reticulate::eng_python)
+knitr::opts_chunk$set(echo = TRUE, message = F, comment = NA)
+root = find_root(is_git_root)
+```
+
+# Applied Review
+
+`scikit-learn` (abbreviated in Python as `sklearn`) is the general machine learning package in Python's Data Science Ecosystem
+
+Python has a lot of other statistics-oriented packages to meet various data science needs, including `scipy` and `statsmodels`
+
+Machine Learning Overview
+
+scikit-learn is a package for machine learning
+
+You may hear this called modeling, predictive analytics, data mining, artificial intelligence, etc. But machine learning is a catch-all term for these things
+
+Despite being broad, most machine learning methodologies and problems fit into two categories: supervised learning and unsupervised learning
+
+# Supervised vs Unsupervised Learning Algorithms
+
+- Supervised learning algorithms
+
+    + Pertain to data that includes both outputs (responses) **AND** inputs (features/factors/predictors) 
+    + Describe the relationship between the input(s) and the output(s) 
+    + Can be used predict new output(s) given new inputs(s)
+    + ***Basic idea***: We features that can be used to distinguish the entities (people/products/systems) that contribute observations in our data set
+
+- Unsupervised learning algorithms
+
+    + Pertain to data that includes **ONLY** inputs (features) 
+    + Partition (cluster) the data in a meaningful way
+    + ***Basic idea***: We DO NOT HAVE outputs that can be used to build a model
+
+# Supervised vs Unsupervised Learning Algorithms
+
+- So, when would an unsupervised learning algorithm be used?
+
+    + Clustering allows you to automatically split the dataset into groups according to similarity. Often, however, cluster analysis overestimates the similarity between groups and doesn’t treat data points as individuals. For this reason, cluster analysis is a poor choice for applications like customer segmentation and targeting
+    + Anomaly detection can automatically discover unusual data points in your dataset. This is useful in pinpointing fraudulent transactions, discovering faulty pieces of hardware, or identifying an outlier caused by a human error during data entry.
+    + Association mining identifies sets of items that frequently occur together in your dataset. Retailers often use it for basket analysis, because it allows analysts to discover goods often purchased at the same time and develop more effective marketing and merchandising strategies.
+    + Latent variable models are commonly used for data preprocessing, such as reducing the number of features in a dataset or decomposing the dataset into multiple components.
+
+# Classes of Supervised Learning Algorithms
+
+- Supervised learning algorithms can be further sub-divided into two main classes
+
+    + Regression algorithms: Used when the output/response variable is continuous
+
+        - Housing or stock prices
+        - Weather analysis
+        - Time series forecasting
+
+    + Classification algorithms: Used when the output/response variable is discrete or categorical
+
+# Classes of Supervised Learning Algorithms: Regression
+
+- The following algorithms can be used to model (describe) the relationship between inputs and outputs when the outputs are numeric and continuous
+
+    + Linear regression
+    + Polynomial regression
+    + Ridge regression
+    + Lasso regression
+    + ElasticNets
+    + Decision trees
+    + Random forests
+    + Gradient boosting methods
+    + Neural networks
+
+# Classes of Supervised Learning Algorithms - Classification
+
+- Classification is focused on predicting/labeling a discrete output (categories)
+
+Our other two examples are classification problems:
+Predicting the outcome of a sporting event
+Labeling whether a photo contains a cucumber or a zucchini
+
+Note that there can be two (yes/no) or more categories
+
+# Classes of Supervised Learning Algorithms - Classification
+
+- The following algorithms can be used to model (describe) the relationship between inputs and outputs when the outputs are discrete or categorical
+
+    + Logistic Regression
+    + Multinomial Regression
+    + Ordinal Regression
+    + Logit Regression
+    + Probit Regression
+    + Nearest Neighbors
+    + Decision Trees
+    + Random Forest
+    + Gradient Boosting
+    + Neural Networks
+
+Models Build our Supervised learning methods build are focused on predicting/estimating/labeling a truth
+
+Another way to think of this is learning a function -- given the inputs, attempt to predict/estimate/label the output
+
+Examples:
+
+- Estimating a customer's satisfaction with a product they haven't tried before
+- Predicting next month's sales
+- Predicting the outcome of a sporting event
+- Labeling whether a photo contains a cucumber or a zucchini
+
+# Linear Regression
+
+- Simple approach for supervised learning
+
+- A useful tool for predicting a quantitative response
+
+- Has been around for a long time and is the topic of innumerable textbooks
+
+- Is a useful and widely used statistical learning method
+
+- Serves as a good jumping-off point for newer approaches: 
+
+    + Many statistical learning algorithms are generalizations or extensions of linear regression
+    
+    + Important to understand linear regression before studying more complex learning algorithms
+
+# Overview of Linear Regression
+
+- This tutorial[^islr] serves as an introduction to linear regression. 
+
+    1. Replication requirements: What you'll need to reproduce the analysis in this tutorial
+    2. Preparing our data: Prepare our data for modeling
+    3. Simple linear regression: Predicting a quantitative response $Y$ with a single predictor variable $X$
+    4. Multiple linear regression: Predicting a quantitative response $Y$ with multiple predictor variables $X_1, X_2, \dots, X_p$
+    5. Incorporating interactions: Removing the additive assumption
+    6. Additional considerations: A few other considerations to know about
+
+# Replication Requirements
+
+- This lecture leverages this [advertising data](http://www-bcf.usc.edu/~gareth/ISL/Advertising.csv) provided by the authors of [An Introduction to Statistical Learning](http://www-bcf.usc.edu/~gareth/ISL/index.html)
+
+- The data set contains four columns
+
+    + Money spent on `TV` advertising across 200 markets (in thousands of dollars)
+    + Money spent on `Radio` advertising across 200 markets (in thousands of dollars)
+    + Money spent on `Newspaper` advertising across 200 markets (in thousands of dollars)
+    + Money made in `Sales` across 200 markets 
+
+- The question to be addressed by analyzing this data set
+
+    + Is there are relationship between `Sales` and the way that advertising dollars are spent
+    + What type of advertising provides the greatest impact on `Sales`
+    
+# Replication Requirements
+
+- First, import the Python libraries we'll need
+
+```{python import}
+import random
+import numpy as np
+import pandas as pd
+import seaborn as sb
+import matplotlib.pyplot as plt
+import scipy as sp
+import statsmodels.api as sm
+```
+
+- Then, pull in the data from the CSV file and store it as a `pandas` DataFrame using `read_csv()`
+
+```{python}
+data_url = \
+  "http://faculty.marshall.usc.edu/gareth-james/ISL/Advertising.csv"
+
+df = pd.read_csv(data_url)
+```
+
+# Replication Requirements
+
+- Note this results in an un-needed column containing the row numbers
+
+```{python advertising_head1}
+df.head()
+```
+
+# Replication Requirements
+
+- Instead, use the `usecols` argument to select which columns we want to extract
+
+- Note that we supply these column names as a list using `{ }`
+
+```{python}
+df2 = pd.read_csv(data_url,
+                  usecols = {'TV','newspaper','radio','sales'})
+
+df2.head()
+```
+
+# Preparing Our Data
+
+- Initial discovery of relationships is usually done with a training set while a test set is used for evaluating whether the discovered relationships hold. 
+
+- More formally, a training set is a set of data used to discover potentially predictive relationships. 
+
+- A test set is a set of data used to assess the strength and utility of a predictive relationship.  
+
+- In a later tutorial we will cover more sophisticated ways for training, validating, and testing predictive models 
+
+- For the time being we'll use a conventional 60% / 40% split where we training our model on 60% of the data and then test the model performance on 40% of the data that is withheld
+
+# Preparing Our Data
+
+```{python}
+rows = range(df2.shape[0])
+
+train_rows = random.sample(rows, 
+                           int(0.6 * len(rows)))
+
+test_rows = list(set(rows) - set(train_rows))
+
+train_data, test_data = df2.iloc[train_rows], df2.iloc[test_rows]
+
+train_data.shape
+test_data.shape
+```
+
+# Simple Linear Regression
+
+- Simple linear regression is a straightforward approach for predicting a quantitative response $Y$ on the basis of a single predictor variable $X$. 
+
+- Assumes there is an approximately a linear relationship between $X$ and $Y$
+
+- Using the advertising data, suppose we wish to model the relationship between the TV budget and sales.  We can write this as:
+
+$$
+Y = \beta_0 + \beta_1X + \epsilon
+$$
+
+- where: 
+
+    + $Y$ represents *sales*
+    + $X$ represents *TV advertising budget*
+    + $\beta_0$ is the intercept
+    + $\beta_1$ is the coefficient (slope term) representing the linear relationship
+    + $\epsilon$ is a mean-zero random error term
+
+# Model Building
+
+To build a simple learn regression model in Python we use the formula notation of $Y \sim X$.
+
+```{python}
+X = train_data[{"TV"}]
+X = sm.add_constant(X)
+y = train_data["sales"]
+
+mod = sm.OLS(y, X)
+
+modfit = mod.fit()
+
+modfit.summary()
+```
+
+```{python, echo=FALSE}
+prm_0 = modfit.params[0]
+prm_1 = modfit.params[1]
+```
+
+So, we have \[\text{sales} = `r round(py$prm_0, 3)` + `r round(py$prm_1, 3)`X + \epsilon\]
+
+```{python}
+X_new = test_data["TV"]
+X_new = sm.add_constant(X_new)
+test_data["predictions"] = modfit.predict(X_new) # make the predictions by the model
+
+test_data
+```
+
+In the background the `lm`, which stands for "linear model", is producing the best-fit linear relationship by minimizing the *least squares* criterion (alternative approaches will be considered in later tutorials).  This fit can be visualized in the following illustration where the "best-fit" line is found by minimizing the sum of squared errors (the errors are represented by the vertical black line segments).
