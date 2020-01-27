@@ -1,0 +1,119 @@
+---
+output: html_document
+---
+
+# maximum likelihood estimation
+
+## Overview
+
+- Maximum likelihood estimation (MLE) is an inference technique that uses a random sample to estimate the parameters of the probability distribution that generated the sample
+
+- The main elements of a maximum likelihood estimation problem are
+
+    + A random sample of observations $\xi$, used to make statements about the probability distribution that generated the sample
+
+    + The sample is the realization of a random vector $\Xi$, whose distribution is unknown and needs to be estimated
+
+    + There is a set [eq1] of real vectors (called the parameter space) whose elements (called parameters) are put into correspondence with the possible distributions of $\Xi $
+
+    + If $\Xi$ is a discrete random vector, we assume that its joint probability mass function [eq2] belongs to a set of joint probability mass functions [eq3] indexed by the parameter $\theta$
+    + When the joint probability mass function is considered as a function of $\theta$ for fixed $\xi$, it is called likelihood (or likelihood function) and it is denoted by
+[eq4]
+
+    + If $\Xi$ is a continuous random vector, we assume that its joint probability density function [eq5] belongs to a set of joint probability density functions [eq6] indexed by the parameter $\theta$; when the joint probability density function is considered as a function of $\theta $ for fixed $\xi$, it is called likelihood and it is denoted by
+[eq7]
+
+we need to estimate the true parameter $\theta _{0}$, which is associated with the unknown distribution that actually generated the sample (we rule out the possibility that several different parameters are put into correspondence with true distribution).
+
+## Maximum likelihood estimator
+
+A maximum likelihood estimator $\widehat{\theta}$ of $\theta_{0}$ is obtained as a solution of a maximization problem:
+[eq8]
+
+In other words, $\widehat{\theta}$ is the parameter that maximizes the likelihood of the sample $\xi$. $\widehat{\theta}$ is called the maximum likelihood estimator of $\theta$.
+
+In what follows, the symbol $\widehat{\theta}$ will be used to denote both a maximum likelihood estimator (a random variable) and a maximum likelihood estimate (a realization of a random variable): the meaning will be clear from the context.
+
+The same estimator $\widehat{\theta}$ is obtained as a solution of
+[eq9]
+i.e., by maximizing the natural logarithm of the likelihood function. Solving this problem is equivalent to solving the original one, because the logarithm is a strictly increasing function. The logarithm of the likelihood is called log-likelihood and it is denoted by
+[eq10]
+Asymptotic properties
+To derive the (asymptotic) properties of maximum likelihood estimators, one needs to specify a set of assumptions about the sample $\xi$ and the parameter space $\Theta$.
+
+
+
+Assumptions for MLE's
+
+Let [eq11] be a sequence of Kx1 random vectors. Denote by $xi _{n}$ the sample comprising the first n realizations of the sequence
+[eq12]
+which is a realization of the random vector
+[eq13]
+We assume that:
+
+- <span class="explain">IID</span> <span class="tooltip">[eq14] is an IID sequence</span>
+
+- <span class="explain">Continuous variables</span> <span class="tooltip">A generic term $X_{j}$ of the sequence [eq15] is a continuous random vector, whose joint probability density function [eq16] belongs to a set of joint probability density functions [eq17] indexed by a Kx1 parameter $\theta \in \Theta$ (where we have dropped the subscript $j$ to highlight the fact that the terms of the sequence are identically distributed)</span>
+
+- <span class="explain">Unique Maximum <span class="tooltip">The density functions [eq23] and the parameter space $\Theta$ are such that there always exists a unique solution [eq24] of the maximization problem: [eq25] where the rightmost equality is a consequence of independence (see the IID assumption above). Of course, this is the same as [eq26] where [eq27] is the log-likelihood and [eq28] are the contributions of the individual observations to the log-likelihood. It is also the same as [eq29]</span>
+
+- <span class="explain">Differentiability</span> <span class="tooltip"> The log-likelihood [eq32] is two times continuously differentiable with respect to $\theta$ in a neighborhood of $\theta _{0}$</span>
+
+- <span class="explain">Other technical conditions</span> <span class="tooltip">The derivatives of the log-likelihood [eq27] are well-behaved, so that it is possible to exchange integration and differentiation, compute their first and second moments, and probability limits involving their entries are also well-behaved</span>
+
+Information inequality
+Given the assumptions made above, we can derive an important fact about the expected value of the log-likelihood:
+[eq34]
+Proof
+This inequality, called information inequality by many authors, is essential for proving the consistency of the maximum likelihood estimator.
+
+Consistency
+Given the assumptions above, the maximum likelihood estimator [eq43] is a consistent estimator of the true parameter $\theta_{0}$:
+[eq44]
+where $QTR{rm}{plim}$ denotes a limit in probability.
+
+Proof
+Score vector
+Denote by [eq54] the gradient of the log-likelihood, that is, the vector of first derivatives of the log-likelihood, evaluated at the point $	heta $. This vector is often called the score vector.
+
+Given the assumptions above, the score has zero expected value:
+[eq55]
+Proof
+Information matrix
+Given the assumptions above, the covariance matrix of the score (called information matrix or Fisher information matrix) is
+[eq65]
+where [eq66] is the Hessian of the log-likelihood, that is, the matrix of second derivatives of the log-likelihood, evaluated at the point $\theta$.
+
+Proof
+The latter equality is often called information equality.
+
+Asymptotic normality
+The maximum likelihood estimator is asymptotically normal:
+[eq72]
+In other words, the distribution of the maximum likelihood estimator [eq73] can be approximated by a multivariate normal distribution with mean $	heta _{0}$ and covariance matrix
+[eq74]
+Proof
+By the information equality (see its proof), the asymptotic covariance matrix is equal to the negative of the expected value of the Hessian matrix:
+[eq93]
+Different assumptions
+As previously mentioned, some of the assumptions made above are quite restrictive, while others are very generic. We now discuss how the former can be weakened and how the latter can be made more specific.
+
+Assumption 1 (IID). It is possible to relax the assumption that [eq94] is IID and allow for some dependence among the terms of the sequence (see, e.g., Bierens - 2004 for a discussion). In case dependence is present, the formula for the asymptotic covariance matrix of the MLE given above is no longer valid and needs to be replaced by a formula that takes serial correlation into account.
+
+Assumption 2 (continuous variables). It is possible to prove consistency and asymptotic normality also when the terms of the sequence [eq94] are extracted from a discrete distribution, or from a distribution that is neither discrete nor continuous (see, e.g., Newey and McFadden - 1994).
+
+Assumption 3 (identification). Typically, different identification conditions are needed when the IID assumption is relaxed (e.g., Bierens - 2004).
+
+Assumption 5 (maximum). To ensure the existence of a maximum, requirements are typically imposed both on the parameter space and on the log-likelihood function. For example, it can be required that the parameter space be compact (closed and bounded) and the log-likelihood function be continuous. Also, the parameter space can be required to be convex and the log-likelihood function strictly concave (e.g.: Newey and McFadden - 1994).
+
+Assumption 6 (exchangeability of limit). To ensure the exchangeability of the limit and the $rg max $ operator, the following condition is often imposed:
+[eq96]
+Assumption 8 (other technical conditions). See, for example, Newey and McFadden (1994) for a discussion of these technical conditions.
+
+Numerical optimization
+In some cases, the maximum likelihood problem has an analytical solution. That is, it is possible to write the maximum likelihood estimator $widehat{	heta }$ explicitly as a function of the data. However, in many cases there is no explicit solution. In these cases, numerical optimization algorithms are used to maximize the log-likelihood. The lecture entitled Maximum likelihood - Algorithm discusses these algorithms.
+
+
+
+Hypothesis testing
+Tests of hypotheses on parameters estimated by maximum likelihood are discussed in the lecture entitled Maximum likelihood - Hypothesis testing, as well as in the lectures on the three classical tests: Wald test, score test, likelihood ratio test.

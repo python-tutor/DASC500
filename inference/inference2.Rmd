@@ -1,0 +1,64 @@
+---
+title: "DASC 500: Introduction to Data Analytics"
+subtitle: "Statistical Inference (Part 2 - Applications)"
+date: '`r format(Sys.Date(), "%d %B %Y")`'
+footer: "DASC 500 (Introduction to Statistical Inference)"
+author: "Maj Jason Freels PhD"
+output: 
+  slidy_presentation:
+    smart: no
+    fig_caption: yes
+graphics: yes
+---
+
+# Overview
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.align = 'center')
+shiny::includeCSS("../resources/css/flatly-style.css")
+shiny::includeCSS("../resources/css/r-title.css")
+shiny::includeScript("../resources/js/jquery.min.js")
+shiny::includeScript("../resources/js/jkf-scroll.js")
+
+library(knitr)
+library(reticulate)
+library(rprojroot)
+knitr::knit_engines$set(python = reticulate::eng_python)
+knitr::opts_chunk$set(echo = TRUE, message = F, comment = NA, warning = F)
+root = find_root(is_git_root)
+```
+
+## In this presentation
+
+- Estimation
+
+    + Point estimators for the mean
+    + Point estimators for the variance
+    + Constructing confidence intervals 
+
+- Hypothesis tests
+
+    + Two sided hypothesis test for the mean
+    + One-sided hypothesis test for the mean
+
+## Setup
+
+- To follow along with this you'll need to import the following libraries into your Python workspace (or Google Colab instance)
+
+```{python}
+import statistics as st
+import numpy as np
+import seaborn as sb
+import matplotlib.pyplot as plt
+import pandas as pd
+import scipy as sp
+```
+
+```{r child='estimation2.Rmd', eval=!FALSE}
+```
+
+```{r child='confidence2.Rmd', eval=!FALSE}
+```
+
+```{r child='hypothesis3.Rmd', eval=!FALSE}
+```

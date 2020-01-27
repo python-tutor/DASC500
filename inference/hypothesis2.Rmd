@@ -1,0 +1,204 @@
+---
+output: html_document
+---
+
+# Hypothesis testing: $t$-test 
+
+## mean
+
+This lecture presents some examples of Hypothesis testing, focusing on tests of hypothesis about the mean, i.e., on using a sample to perform tests of hypothesis about the mean of an unknown distribution.
+
+Table of Contents
+
+Normal IID samples - Known variance
+In this example we make the same assumptions we made in the example of set estimation of the mean entitled Set estimation of the mean - Normal IID samples. The reader is strongly advised to read that example before reading this one.
+
+The sample
+In this example, the sample $xi _{n}$ is made of n independent draws from a normal distribution having unknown mean mu and known variance sigma^2. Specifically, we observe n realizations $x_{1}$, ..., $x_{n}$ of n independent random variables X_1, ..., X_n, all having a normal distribution with unknown mean mu and known variance sigma^2. The sample is the n-dimensional vector [eq1], which is a realization of the random vector [eq2].
+
+The null hypothesis
+We test the null hypothesis that the mean mu is equal to a specific value $mu _{0}$:
+[eq3]
+The alternative hypothesis
+We assume that the parameter space is the whole real line, i.e., $mu in U{211d} $. Therefore, the alternative hypothesis is
+[eq4]
+The test statistic
+To construct a test statistic, we use the sample mean
+[eq5]
+The test statistic is
+[eq6]
+This test statistic is often called z-statistic or normal z-statistic and a test of hypothesis based on this statistic is called z-test or normal z-test.
+
+The critical region
+Let [eq7]. We reject the null hypothesis $H_{0}$ if $Z_{n}>z$ or if $Z_{n}<-z$. In other words, the critical region is
+[eq8]
+Thus, the critical values of the test are $-z$ and $z$.
+
+The power function
+The power function of the test is
+[eq9]
+where Z is a standard normal random variable and the notation $QTR{rm}{P}_{mu }$ is used to indicate the fact that the probability of rejecting the null hypothesis is computed under the hypothesis that the true mean is equal to mu.
+
+Proof
+The size of the test
+When evaluated at the point $mu =mu _{0}$, the power function is equal to the probability of committing a Type I error, i.e., the probability of rejecting the null hypothesis when the null hypothesis is true. This probability is called the size of the test and it is equal to
+[eq12]
+where Z is a standard normal random variable (this is trivially obtained by substituting mu with $mu _{0}$ in the formula for the power function found above).
+
+Normal IID samples - Unknown variance
+This example is similar to the previous one. The only difference is that we now relax the assumption that the variance of the distribution is known.
+
+The sample
+In this example, the sample $xi _{n}$ is made of n independent draws from a normal distribution having unknown mean mu and unknown variance sigma^2. Specifically, we observe n realizations $x_{1}$, ..., $x_{n}$ of n independent random variables X_1, ..., X_n, all having a normal distribution with unknown mean mu and unknown variance sigma^2. The sample is the n-dimensional vector [eq13], which is a realization of the random vector [eq2].
+
+The null hypothesis
+We test the null hypothesis that the mean mu is equal to a specific value $mu _{0}$:
+[eq3]
+The alternative hypothesis
+We assume that the parameter space is the whole real line, i.e., $mu in U{211d} $. Therefore, the alternative hypothesis is
+[eq16]
+The test statistic
+We construct two test statistics, by using the sample mean
+[eq5]
+and either the unadjusted sample variance
+[eq18]
+or the adjusted sample variance
+[eq19]
+The two test statistics are
+[eq20]
+where the superscripts $u$ and a indicate whether the test statistic is based on the unadjusted or the adjusted sample variance. These two test statistics are often called t-statistics or Student's t-statistics and tests of hypothesis based on these statistics are called t-tests or Student's t-tests.
+
+The critical region
+Let [eq7]. We reject the null hypothesis $H_{0}$ if $Z_{n}^{i}>z$ or if $Z_{n}^{i}<-z$ (for $i=u$ or $i=a$). In other words, the critical region is
+[eq22]
+Thus, the critical values of the test are $-z$ and $z$.
+
+The power function
+The power function of the test based on the unadjusted sample variance is
+[eq23]
+where the notation $QTR{rm}{P}_{mu }$ is used to indicate the fact that the probability of rejecting the null hypothesis is computed under the hypothesis that the true mean is equal to mu and $W_{n-1}$ is a non-central standard Student's t distribution with $n-1$ degrees of freedom and non-centrality parameter equal to
+[eq24]
+Proof
+The power function of the test based on the adjusted sample variance is
+[eq31]
+where the notation $QTR{rm}{P}_{mu }$ is used to indicate the fact that the probability of rejecting the null hypothesis is computed under the hypothesis that the true mean is equal to mu and $W_{n-1}$ is a non-central standard Student's t distribution with $n-1$ degrees of freedom and non-centrality parameter equal to
+[eq32]
+Proof
+Note that, for a fixed $z$, the test based on the unadjusted sample variance is more powerful than the test based on the adjusted sample variance, i.e.,
+[eq38]
+because
+[eq39]
+and, as a consequence
+[eq40]
+The size of the test
+The size of the test based on the unadjusted sample variance is equal to
+[eq41]
+where $W_{n-1}$ is a standard Student's t distribution with $n-1$ degrees of freedom.
+
+Proof
+The size of the test based on the adjusted sample variance is equal to
+[eq44]
+where $W_{n-1}$ is a standard Student's t distribution with $n-1$ degrees of freedom.
+
+Proof
+Note that, for a fixed $z$, the test based on the unadjusted sample variance has a greater size than the test based on the adjusted sample variance, because, as demonstrated above, the former also has a greater power than the latter for any value of the true parameter mu.
+
+Solved exercises
+Below you can find some exercises with explained solutions.
+
+Exercise 1
+Denote by [eq47] the distribution function of a non-central standard Student's t distribution with n degrees of freedom and non-centrality parameter equal to k. Suppose a statistician observes $100$ independent realizations of a normal random variable. The mean and the variance of the random variable, which the statistician does not know, are equal to 1 and $4$ respectively. What is the probability, expressed in terms of [eq48], that the statistician will reject the null hypothesis that the mean is equal to zero if she runs a t-test based on the $100$ observed realizations, she sets $z=2$ as the critical value, and she uses the adjusted sample variance to compute the t-statistic?
+
+Solution
+Exercise 2
+Denote by [eq52] the distribution function of a standard Student's t distribution with n degrees of freedom, and by [eq53] its inverse. Suppose that a statistician observes $100$ independent realizations of a normal random variable, and she performs a t-test of the null hypothesis that the mean of the variable is equal to zero, based on the $100$ observed realizations, and using the unadjusted sample variance to compute the t-statistic. What critical value should she use in order to incur into a Type I error with 10% probability? Express it in terms of [eq54]
+
+## variance
+
+This lecture presents some examples of Hypothesis testing, focusing on tests of hypothesis about the variance, that is, on using a sample to perform tests of hypothesis about the variance of an unknown distribution.
+
+Table of Contents
+
+Normal IID samples - Known mean
+In this example we make the same assumptions we made in the example of set estimation of the variance entitled Normal IID samples - Known mean. The reader is strongly advised to read that example before reading this one.
+
+The sample
+The sample $xi _{n}$ is made of n independent draws from a normal distribution having known mean mu and unknown variance sigma^2. Specifically, we observe n realizations $x_{1}$, ..., $x_{n}$ of n independent random variables X_1, ..., X_n, all having a normal distribution with known mean mu and unknown variance sigma^2. The sample is the n-dimensional vector [eq1], which is a realization of the random vector [eq2].
+
+The null hypothesis
+We test the null hypothesis that the variance sigma^2 is equal to a specific value $sigma _{0}^{2}>0$:
+[eq3]
+The alternative hypothesis
+We assume that the parameter space is the set of strictly positive real numbers, i.e., [eq4]. Therefore, the alternative hypothesis is
+[eq5]
+The test statistic
+To construct a test statistic, we use the following point estimator of the variance:
+[eq6]
+The test statistic is
+[eq7]
+This test statistic is often called Chi-square statistic (also written as [eq8]-statistic) and a test of hypothesis based on this statistic is called Chi-square test (also written as [eq9]-test).
+
+The critical region
+Let [eq10] and $z_{1}<z_{2}$. We reject the null hypothesis $H_{0}$ if [eq11] or if [eq12]. In other words, the critical region is
+[eq13]
+Thus, the critical values of the test are $z_{1}$ and $z_{2}$.
+
+The power function
+The power function of the test is
+[eq14]
+where $kappa _{n}$ is a Chi-square random variable with n degrees of freedom and the notation [eq15] is used to indicate the fact that the probability of rejecting the null hypothesis is computed under the hypothesis that the true variance is equal to sigma^2.
+
+Proof
+The size of the test
+When evaluated at the point [eq19], the power function is equal to the probability of committing a Type I error, i.e., the probability of rejecting the null hypothesis when the null hypothesis is true. This probability is called the size of the test and it is equal to
+[eq20]
+where $kappa _{n}$ is a Chi-square random variable with n degrees of freedom (this is trivially obtained by substituting sigma^2 with $sigma _{0}^{2}$ in the formula for the power function found above).
+
+Normal IID samples - Unknown mean
+This example is similar to the previous one. The only difference is that we now relax the assumption that the mean of the distribution is known.
+
+The sample
+In this example, the sample $xi _{n}$ is made of n independent draws from a normal distribution having unknown mean mu and unknown variance sigma^2. Specifically, we observe n realizations $x_{1}$, ..., $x_{n}$ of n independent random variables X_1, ..., X_n, all having a normal distribution with unknown mean mu and unknown variance sigma^2. The sample is the n-dimensional vector [eq21], which is a realization of the random vector [eq2].
+
+The null hypothesis
+We test the null hypothesis that the variance sigma^2 is equal to a specific value $sigma _{0}^{2}>0$:
+[eq23]
+The alternative hypothesis
+We assume that the parameter space is the set of strictly positive real numbers, i.e., [eq4]. Therefore, the alternative hypothesis is
+[eq5]
+The test statistic
+We construct a test statistic by using the sample mean
+[eq26]
+and either the unadjusted sample variance
+[eq27]
+or the adjusted sample variance
+[eq28]
+The test statistic is
+[eq29]
+This test statistic is often called Chi-square statistic (also written as [eq8]-statistic) and a test of hypothesis based on this statistic is called Chi-square test (also written as [eq9]-test).
+
+The critical region
+Let [eq10] and $z_{1}<z_{2}$. We reject the null hypothesis $H_{0}$ if [eq11] or if [eq12]. In other words, the critical region is
+[eq13]
+Thus, the critical values of the test are $z_{1}$ and $z_{2}$.
+
+The power function
+The power function of the test is
+[eq36]
+where the notation [eq37] is used to indicate the fact that the probability of rejecting the null hypothesis is computed under the hypothesis that the true variance is equal to sigma^2 and $kappa _{n}$ has a Chi-square distribution with $n-1$ degrees of freedom.
+
+Proof
+The size of the test
+The size of the test is equal to
+[eq20]
+where $kappa _{n}$ has a Chi-square distribution with $n-1$ degrees of freedom (this is trivially obtained by substituting sigma^2 with $sigma _{0}^{2}$ in the formula for the power function found above).
+
+Solved exercises
+Below you can find some exercises with explained solutions.
+
+Exercise 1
+Denote by [eq43] the distribution function of a Chi-square random variable with n degrees of freedom. Suppose you observe $40$ independent realizations of a normal random variable. What is the probability, expressed in terms of [eq44], that you will commit a Type I error if you run a Chi-square test of the null hypothesis that the variance is equal to 1, based on the $40$ observed realizations, and choosing $z_{1}=15 $ and $z_{2}=65$ as the critical values?
+
+Solution
+Exercise 2
+Make the same assumptions of the previous exercise and denote by [eq50] the inverse of [eq51]. Change the critical value $z_{1}$ in such a way that the size of the test becomes exactly equal to $5%$.

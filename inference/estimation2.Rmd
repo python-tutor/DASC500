@@ -1,0 +1,261 @@
+---
+output: html_document
+---
+
+# Point estimators for the mean (IID, Normally distributed)
+
+## Overview
+
+- The random sample is composed of observations $x_{1},\ldots,x_{n}$ drawn from $n$ independent random variables $X_1,\ldots,X_n$ each of which are normally distributed and having unknown mean $\mu$ and unknown variance $\sigma^2$
+
+- In this scenario an estimator for the population mean $\mu$ is the sample mean
+
+$$
+\bar{X}_n = \frac{1}{n}\sum_{i=1}^n X_i
+$$
+
+## Properties of the estimator
+
+- As shown below, the <focus>expected value of this estimator</focus> is equal to the population parameter $\mu$, therefore the estimator is unbiased
+
+$$
+\begin{aligned}
+\operatorname{E}[\bar{X}_n] &= \operatorname{E}\bigg[\frac{1}{n}\sum_{i=1}^n X_i\bigg]\\
+&=\frac{1}{n}\sum_{i=1}^n \operatorname{E}[X_i]\\
+&=\frac{1}{n}\sum_{i=1}^n \mu\\
+&=\frac{1}{n}n \mu\\
+&=\mu
+\end{aligned}
+$$
+
+- Our sequence of random variables (IID with finite mean) satisfies the conditions of <a target=" " href="http://mathworld.wolfram.com/StrongLawofLargeNumbers.html">Kolmogorov's Strong Law of Large Numbers</a>
+
+- Therefore, the sample mean $\bar{X}_n$ converges <a target=" " href="https://math.stackexchange.com/questions/1443015/why-do-we-say-almost-surely-in-probability-theory">almost surely</a> to the true mean $\mu$ and is strongly consistent
+
+- Convergence of the the sample mean estimator to the population mean
+
+```{python, cache=!TRUE}
+loc = 5.43
+scl = 2.65
+
+normal5       = np.random.normal(loc = loc, scale = scl, size = 5)
+normal10      = np.random.normal(loc = loc, scale = scl, size = 10)
+normal50      = np.random.normal(loc = loc, scale = scl, size = 50)
+normal100     = np.random.normal(loc = loc, scale = scl, size = 100)
+normal500     = np.random.normal(loc = loc, scale = scl, size = 500)
+normal1000    = np.random.normal(loc = loc, scale = scl, size = 100)
+normal5000    = np.random.normal(loc = loc, scale = scl, size = 5000)
+normal10000   = np.random.normal(loc = loc, scale = scl, size = 10000)
+normal50000   = np.random.normal(loc = loc, scale = scl, size = 50000)
+normal100000  = np.random.normal(loc = loc, scale = scl, size = 100000)
+normal500000  = np.random.normal(loc = loc, scale = scl, size = 500000)
+normal1000000 = np.random.normal(loc = loc, scale = scl, size = 1000000)
+```
+
+```{python}
+means = pd.DataFrame([st.mean(normal5),
+                      st.mean(normal10),
+                      st.mean(normal50),
+                      st.mean(normal100),
+                      st.mean(normal500),
+                      st.mean(normal1000),
+                      st.mean(normal5000),
+                      st.mean(normal10000),
+                      st.mean(normal50000),
+                      st.mean(normal100000),
+                      st.mean(normal500000),
+                      st.mean(normal1000000)], 
+                      columns =  ["Mean"], 
+                      index = ["      5 obs = ",
+                               "     10 obs = ",
+                               "     50 obs = ",
+                               "    100 obs = ",
+                               "    500 obs = ",
+                               "   1000 obs = ",
+                               "   5000 obs = ",
+                               "  10000 obs = ",
+                               "  50000 obs = ",
+                               " 100000 obs = ",
+                               " 500000 obs = ",
+                               "1000000 obs = "])
+print(means)
+```
+
+- The <focus>variance of the estimator</focus> $\bar{X}_n$ is equal to $\sigma^{2}/n$
+
+- This can be shown by applying the variance operator and noting that the obervations are independent 
+
+$$
+\begin{aligned}
+\operatorname{Var}[\bar{X}_n] &= \operatorname{Var}\bigg[\frac{1}{n}\sum_{i=1}^n X_i\bigg]\\
+&=\frac{1}{n^2}\operatorname{Var}\bigg[\sum_{i=1}^n X_i\bigg]\\
+&=\frac{1}{n^2}\sum_{i=1}^n \operatorname{Var}[X_i]\\
+&=\frac{1}{n^2}\sum_{i=1}^n \sigma^2\\
+&=\frac{1}{n^2}n \sigma^2\\
+&=\frac{\sigma^2}{n}
+\end{aligned}
+$$
+
+- The variance of this estimator converges to zero as the sample size $n$ goes to infinity $\infty$ 
+
+```{python, cache=!TRUE}
+Vars = pd.DataFrame([st.variance(normal5),
+                     st.variance(normal10),
+                     st.variance(normal50),
+                     st.variance(normal100),
+                     st.variance(normal500),
+                     st.variance(normal1000),
+                     st.variance(normal5000),
+                     st.variance(normal10000),
+                     st.variance(normal50000),
+                     st.variance(normal100000),
+                     st.variance(normal500000),
+                     st.variance(normal1000000)], 
+                      columns =  ["Variance"], 
+                      index = ["      5 obs = ",
+                               "     10 obs = ",
+                               "     50 obs = ",
+                               "    100 obs = ",
+                               "    500 obs = ",
+                               "   1000 obs = ",
+                               "   5000 obs = ",
+                               "  10000 obs = ",
+                               "  50000 obs = ",
+                               " 100000 obs = ",
+                               " 500000 obs = ",
+                               "1000000 obs = "])
+print(Vars)
+```
+
+- Using the results obtained above for the expected value and the variance of the estimator, it can be shown that the distribution of the estimator is
+
+$$
+\bar{X}_n \sim \operatorname{NOR}(\mu,\sigma^2/n)
+$$
+
+# Point estimators for the mean - (IID, not normally distributed)
+
+## Overview
+
+- The sample $x_{1},\ldots, x_{n}$ is composed of realizations drawn from $n$ independent random variables $X_1,\ldots, X_n$, all having the same distribution with unknown mean $\mu$ and variance $\sigma^2$
+
+- As was shown above for the case when the random variables are all normally distributed, the estimator of the population mean $\mu$ is the sample mean
+
+$$
+\bar{X}_n = \frac{1}{n}\sum_{i=1}^n X_i
+$$
+
+## Properties of the estimator
+
+- The expected value and the the variance of the estimator are the same as what was shown above for the case when the random variables are all normally distributed 
+
+- However, the distribution of the estimator does not necessarily have a normal distribution 
+
+    + Depends upon the distribution of each random variable in the the sequence $X_1,\ldots, X_n$
+    + However, $\bar{X}_n$ is asymptotically normal distributed  (i.e., converges to a normal distribution as $n$ becomes large)
+    + The sequence satisfies the conditions of <a target=" " href="https://www.statlect.com/asymptotic-theory/central-limit-theorem">Lindeberg-Lévy Central Limit Theorem</a> (IID sequence with finite mean and variance)
+
+- The code below demonstrate how $\bar{X}_n$ converges to a normal distribution ($\bar{X}_n \xrightarrow{d} \operatorname{NOR}(0,\sigma^2)$)
+
+- There are two variables of interest
+
+    + The size of the random sample (`samp_siz`) this value controls the degree to which the sequence converges to a $\operatorname{NOR}(0,\sigma^2)$ distribution
+    + The number of simulations run (`num_sims`) this variable does not effect how the sequence converges to a $\operatorname{NOR}(0,\sigma^2)$, but more simulations give us a clearer picture
+
+- You should paste the code below into your Python console (or Google Colab instance) to define the function `norm_converge()`
+
+```{python}
+def norm_converge(samp_siz, num_sims, exp = True, param = 0.3):
+  
+    mean_vec = np.empty([num_sims])
+  
+    for i in range(num_sims):
+  
+      if exp == True:
+          samp = np.random.exponential(scale = param, size = samp_siz)
+      else:
+          samp = np.random.weibull(a = param, size = samp_siz)
+      
+      mean_vec[i] = st.mean(samp)
+  
+    plot = sb.kdeplot(mean_vec, shade=True);
+    plt.show(plot)
+```
+
+- With the function defined run the code shown below to view the effect of changing the variables  
+
+```{python}
+norm_converge(samp_siz = 3, num_sims = 100, exp = True, param = 0.4)
+```
+
+# Point estimators for the variance (IID, Normally distributed, known mean)
+
+## Overview
+
+- The random sample $x_{1},\ldots,x_{n}$ is composed of realizations drawn from $n$ independent random variables $X_1,\ldots, X_n$, all of which are normally distributed with known mean $\mu$ and unknown variance $\sigma^2$
+
+- Assuming that the variance is positive and finite $(0<\sigma^2<\infty)$, then by definition
+
+$$
+\sigma^2=\operatorname{E}\Big[\big(X−\mu\big)^2\Big].
+$$
+
+- Therefore, the variance is the mean of the random variable 
+
+$$
+Y = \big(X−\mu\big)^2.
+$$
+
+- Which implies the following estimator for the variance, denoted by $S^2$
+
+$$
+S^2 = \widehat{\sigma}^2 =\frac{1}{n}\sum_{i=1}^n\big(X_i−\mu\big)^2.
+$$
+
+## Properties of the estimator
+
+- Because of the linearity of the expectation operator it can be shown that $\overline{S}^2$ is an unbiased estimator of $\sigma^2$ if the value of the mean is known. 
+
+- However, We typically don't know the value of $\mu$ - so we replace $\mu$ with its estimator, the sample mean, to obtain the following estimator for $\sigma^2$
+
+$$
+S^2=\frac{1}{n}\sum_{i = 1}^n(X_i−\overline{X})^2
+$$
+
+- After expanding the squared term and applying some algebra, we have the following estimator for the variance based on the sample mean
+
+$$
+S^2=\frac{1}{n}\sum_{i = 1}^n(X^2_i−\overline{X}^2).
+$$
+
+- We can determine whether this is an biased estimator for the variance as follows
+
+$$
+\begin{aligned}
+\operatorname{Bias}\big(S^2\big) &= \operatorname{E}\big[S^2\big]-\sigma^2\\
+&=\frac{1}{n} \left(\sum_{i=1}^n E\big[X_i\big]^2-nE\big[\overline{X}^2\big]\right) - \sigma^2\\
+ &=\frac{1}{n} \left(n(\mu^2+\sigma^2)-n\left(\mu^2+\frac{\sigma^2}{n}\right)\right)-\sigma^2\\
+ &=\frac{n-1}{n}\sigma^2-\sigma^2\\
+ &=-\frac{\sigma^2}{n}
+\end{aligned}
+$$
+
+- Thus, we see that $\overline{S}^2$ is a biased estimator for the variance because it includes the $(n-1)/n$ term
+
+- We can eliminate this term by multiplying $S^2$ by the reciprocal of this term $n/(n-1)$
+
+- We know that including this term will cancel out the $(n-1)/n$ term in the end 
+
+- The result is an estimator known as <focus>adjusted sample variance</focus> $s^2$ which is an unbiased estimator for the variance
+
+$$
+s^2=\frac{1}{n-1}\sum_{i = 1}^n(X_i−\overline{X})^2.
+$$
+
+- The variance of the adjusted sample variance is expressed as shown below 
+
+$$
+\operatorname{Var}\left[s^2\right] = \frac{2\sigma^2}{n-1}
+$$
+
+- While not done here, it can be shown that this estimator has a gamma distribution with parameters $n$, and $\sigma^2$
