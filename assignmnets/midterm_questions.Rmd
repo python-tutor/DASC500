@@ -1,0 +1,47 @@
+---
+title: "Midterm Questions"
+author: "Jason Freels"
+date: "2/7/2020"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+q = 0
+```
+
+## Question `r q=q+1;q`
+
+What does it mean if we say that an estimator for $\mu$ is unbiased?
+
+## Question `r q=q+1;q`
+
+For any random variable $X$ the Cumulative Distribution Function (CDF) is expressed as $F_{_{X}}(x)$.  What does this function tell us?
+
+## Question `r q=q+1;q`
+
+For any random variable $X$ the Probability Density Function (PDF) is expressed as $f_{_{X}}(x)$.  What does this function tell us?
+
+## Question `r q=q+1;q`
+
+Every hypothesis test requires a test statistic. What do we need to know about any test statistic before we can use it in a Hypothesis test
+
+## Question `r q=q+1;q`
+
+A hypothsis test is a statistical process in which we use data to decide between two complimentary statments.  Suppose we were interested in conducting a hypothesis test in which we determine whether a new drug is effective at treating the flu.  Our possible statements are: "The drug is effective" and "The drug is not effective"
+
+Which of these two statements would be the Null hypothesis and which would be the alternative hypothesis?
+
+## Question `r q=q+1;q`
+
+In homework #3 you worked with the data in the `newspaper` column on the `advertising` data set.  In this problem you will work with **ALL of the the observations** in `radio` column of the same data set.
+
+a. Construct a $90\%$ confidence interval for the mean of the data in the `radio` column
+
+a. Construct a $99\%$ confidence interval for the mean of the data in the `radio` column
+
+a. Construct a $95\%$ confidence interval for the variance of the data in the `radio` column
+
+Tracy Martin
+6320 Marshall Road
+$40
