@@ -1,0 +1,198 @@
+---
+title: "DASC 500: Introduction to Data Analytics"
+subtitle: "Clustering Algorithms"
+date: '`r format(Sys.Date(), "%d %B %Y")`'
+footer: "`r paste(rmarkdown::metadata$title, ' - ',rmarkdown::metadata$subtitle)`"
+author: "Maj Jason Freels PhD"
+output: 
+  slidy_presentation:
+    smart: no
+    fig_caption: yes
+graphics: yes
+---
+
+# Overview
+
+<style>
+div.plotly.html-widget {width: 800px;
+                   height: 800px;
+                   margin-left:auto;
+                   margin-right:auto;}
+</style>
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, 
+                      fig.align = 'center',
+                      message = F,
+                      warning = F)
+
+shiny::includeCSS("../resources/css/flatly-style.css")
+shiny::includeCSS("../resources/css/r-title.css")
+shiny::includeScript("../resources/js/jquery.min.js")
+shiny::includeScript("../resources/js/jkf-scroll.js")
+
+library(knitr)
+library(reticulate)
+library(rprojroot)
+knitr::opts_chunk$set(echo = TRUE, message = F, comment = NA, warning = F)
+root = find_root(is_git_root)
+```
+
+```{python, echo=F}
+import warnings
+warnings.filterwarnings('ignore')
+```
+
+## Introduction
+
+- Clustering algorithms are a family of methods used to identify subgroups within a data set by classifying observations into similar categories 
+
+- We implement clustering algorithms because we want to partition the observations in such a way to help guide further analyses
+
+- Since there isn't a response variable, clustering is an example of **unsupervised** learning algorithms
+
+- In this lecture we'll look at two common types of clustering algorithms
+
+    + K-Means clustering
+    + Hierarchical clustering
+
+- We’ll demonstrate these methods using the `Mall_Customers` data set which can be accessed from <a target=" "href="https://raw.githubusercontent.com/SteffiPeTaffy/machineLearningAZ/master/Machine%20Learning%20A-Z%20Template%20Folder/Part%204%20-%20Clustering/Section%2024%20-%20K-Means%20Clustering/Mall_Customers.csv">**this site**</a> 
+
+
+- This data set contains 5 columns 
+
+    + `CustomerID`: Numeric identifier for each customer in the data set
+    + `Genre`: Character string indicating the customer's gender
+    + `Annual Income (k$)`: The customer's annual income (in thousands of dollars) 
+    + `Age`: Numeric variable of the customer's age in years
+    + `Spending Score (1-100)`: Numeric indicator of the customer's spending habits
+
+## Setting up the workspace
+
+- To carry out this analysis you'll need to import the following libraries and modules 
+
+```{python}
+# for basic mathematics operation 
+import numpy as np
+import pandas as pd
+from pandas import plotting
+
+# for visualizations
+import matplotlib.pyplot as plt
+import seaborn as sb
+plt.style.use('fivethirtyeight')
+fig = plt.gcf() 
+fig.set_size_inches(12, 8)
+```
+
+- With the packages imported, let's read in the data from the URL provided above
+
+```{python}
+# importing the data set
+data_url = "https://raw.githubusercontent.com/SteffiPeTaffy/machineLearningAZ/master/Machine%20Learning%20A-Z%20Template%20Folder/Part%204%20-%20Clustering/Section%2024%20-%20K-Means%20Clustering/Mall_Customers.csv"
+
+df = pd.read_csv(data_url)
+```
+
+```{r echo=FALSE}
+knitr::kable(head(py["df"],20))
+```
+
+- This data set has been partially cleaned to simplify our analysis, but in general the data should be prepared as follows:
+
+    1. Ensure that each row contains one observation
+    2. Ensure that each column contains a single variable
+    3. Ensure that any missing values in the data are removed or can be estimated
+    4. Ensure that the data are standardized to make variables comparable (this means that the variables are transformed such that they have a mean of zero and a standard deviation of one
+
+- For step 3 we can check that there aren't any "troublesome" values by invoking the `isnull()` function over the columns and rows in the data set
+
+```{python}
+# checking if there is any NULL data
+
+df.isnull().any().any()
+```
+
+- For step 4, the data have not been standardized - let's do that now 
+
+- For each column in our data set that contain numeric values we
+
+    + Subtract from each value the mean of that column
+    + Divide this result by the standard deviation of that column 
+
+```{python}
+df_norm = df
+
+df_norm.iloc[:,2] = (df.iloc[:,2] - df.iloc[:,2].mean()) / df.iloc[:,2].std()
+df_norm.iloc[:,3] = (df.iloc[:,3] - df.iloc[:,3].mean()) / df.iloc[:,3].std()
+df_norm.iloc[:,4] = (df.iloc[:,4] - df.iloc[:,4].mean()) / df.iloc[:,4].std()
+
+df_norm
+```
+
+- With the data prepared let's dive in to clustering algorithms
+
+# Clustering overview
+
+## Distance Measures
+
+- Clustering algorithms are implemented on at least two components (columns) in our data
+
+    + The first component can be thought of as the `x` coordinate in an `x-y` plane
+    + The second component can be thought of as the `y` coordinate in an `x-y` plane 
+
+- It's important to understand that clustering algorithms pre-suppose a method used to compute the distance or the dissimilarity between each pair of observations
+
+- The result of this computation is a dissimilarity or distance matrix
+
+    + There are many methods to calculate this distance information
+    + The choice of distance measures is a critical step in clustering and defines how the similarity of two elements (x, y) is calculated and it will influence the shape of the clusters
+
+- Two classical methods for distance measures are *Euclidean* and *Manhattan distances*, which are defined as:
+
+    + __Euclidean distance:__ $d_{euc}(x,y) = \sqrt{\sum^n_{i=1}(x_i - y_i)^2}$
+    + __Manhattan distance:__ $d_{man}(x,y) = \sum^n_{i=1}|(x_i - y_i)|$
+
+- Other dissimilarity measures exist such as correlation-based distances
+
+- Correlation-based distance is defined by subtracting the correlation coefficient from $1$ 
+
+- There are several different methods for computing correlation-based distances, such as:
+
+    + __Pearson correlation distance__
+    + __Spearman correlation distance__
+    + __Kendall correlation distance__
+
+- The choice of distance measures is very important, as it has a strong influence on the clustering results
+
+- For many software tools, the default distance measure is the Euclidean distance
+
+- However, depending on the type of the data and the research questions, other dissimilarity measures might be preferred and you should be aware of the options.
+
+- In Python we can create the dissimilarity matrix using the functions <a target=" " href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.pdist.html">pdist()</a> and <a target=" " href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.squareform.html#scipy.spatial.distance.squareform">squareform()</a>
+
+```{python}
+from scipy.spatial.distance import squareform
+from scipy.spatial.distance import pdist
+
+dm = pd.DataFrame(squareform(pdist(df_norm.iloc[:, 2:])))
+
+dm
+```
+
+## Clustering Algorithms
+
+- __K-means clustering__ is a relatively simple method used to cluster observations into a pre-specified set of `k` groups
+
+- __Hierarchical clustering__ is an alternative approach to k-means that does not require us to pre-specify the number of clusters 
+
+- These two methods are discussed further in the following sections
+
+```{r child="kmeans.Rmd", eval=!FALSE}
+```
+
+
+```{r child="heirarchical.Rmd", eval=!FALSE}
+```
+
+

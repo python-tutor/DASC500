@@ -1,0 +1,130 @@
+---
+title: "DASC 500: Introduction to Data Analytics"
+subtitle: "An Introduction to Clustering Algorithms"
+date: '`r format(Sys.Date(), "%d %B %Y")`'
+footer: "DASC 500 (Introduction Supervised Learning Algorithms)"
+author: "Maj Jason Freels PhD"
+output: 
+  slidy_presentation:
+    smart: no
+    fig_caption: yes
+graphics: yes
+---
+
+# Overview
+
+<style>
+div.plotly.html-widget {width: 800px;
+                   height: 800px;
+                   margin-left:auto;
+                   margin-right:auto;}
+</style>
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, 
+                      fig.align = 'center',
+                      message = F,
+                      warning = F)
+
+shiny::includeCSS("../resources/css/flatly-style.css")
+shiny::includeCSS("../resources/css/r-title.css")
+shiny::includeScript("../resources/js/jquery.min.js")
+shiny::includeScript("../resources/js/jkf-scroll.js")
+
+library(knitr)
+library(reticulate)
+library(rprojroot)
+knitr::opts_chunk$set(echo = TRUE, message = F, comment = NA, warning = F)
+root = find_root(is_git_root)
+```
+
+
+ Because there isn't a response variable, this is an unsupervised method, which implies that it seeks to find relationships between the $$n$$ observations without being trained by a response variable. Clustering allows us to identify which observations are alike, and potentially categorize them therein.
+
+- Clustering algorithms are a family of methods for identifying subgroups within a data set
+
+- Clustering methods help classify observations into similar categories 
+
+    + Categories of customers
+    + Categories of students
+
+- We want observations in the same group to be similar and observations in different groups to be dissimilar
+
+To perform a cluster analysis, generally, the data should be prepared as follows:
+
+1. Rows are observations (individuals)
+2. columns are variables
+2. Any missing value in the data must be removed or estimated.
+3. The data must be standardized (i.e., scaled) to make variables comparable. Recall that, standardization consists of transforming the variables such that they have mean zero and standard deviation one.[^scale] 
+
+Here, we’ll use `Mall_Customers`, data set which contains statistics in arrests per 100,000 residents for assault, murder, and rape in each of the 50 US states in 1973. 
+
+- The data set may be accessed from <a target=" " href="https://raw.githubusercontent.com/SteffiPeTaffy/machineLearningAZ/master/Machine%20Learning%20A-Z%20Template%20Folder/Part%204%20-%20Clustering/Section%2024%20-%20K-Means%20Clustering/Mall_Customers.csv">**this site**</a>
+
+## Setting up our workspace
+
+```{python}
+# for basic mathematics operation 
+import numpy as np
+import pandas as pd
+from pandas import plotting
+
+# for visualizations
+import matplotlib.pyplot as plt
+import seaborn as sns
+plt.style.use('fivethirtyeight')
+```
+
+```{python, eval=!F}
+# for interactive visualizations
+import plotly.offline as py
+from plotly.offline import init_notebook_mode, iplot
+import plotly.graph_objs as go
+from plotly import tools
+#init_notebook_mode(connected = True)
+import plotly.figure_factory as ff
+```
+
+```{python}
+# importing the dataset
+data_url = "https://raw.githubusercontent.com/SteffiPeTaffy/machineLearningAZ/master/Machine%20Learning%20A-Z%20Template%20Folder/Part%204%20-%20Clustering/Section%2024%20-%20K-Means%20Clustering/Mall_Customers.csv"
+
+data = pd.read_csv(data_url)
+```
+
+```{r echo=FALSE}
+DT::datatable(py["data"])
+```
+
+
+```{python}
+# describing the data
+
+desc = ff.create_table(data.describe())
+py.iplot(desc)
+```
+
+```{python}
+# checking if there is any NULL data
+
+data.isnull().any().any()
+```
+
+
+```{r}
+
+```
+
+
+## Clustering Algorithms 
+
+- K-means clustering a simple and commonly used clustering method for splitting a data set into `k` groups
+
+- Hierarchical clustering is an alternative approach to k-means clustering for identifying groups in the data set. It does not require us to pre-specify the number of clusters to be generated as is required by the k-means approach. Furthermore, hierarchical clustering has an added advantage over K-means clustering in that it results in an attractive tree-based representation of the observations, called a dendrogram.
+
+```{r child="kmeans.Rmd", eval=FALSE}
+```
+
+
+```{r child="heirarchical.Rmd", eval=FALSE}
+```

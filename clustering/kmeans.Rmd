@@ -1,0 +1,341 @@
+# K-means Clustering
+
+## Overview
+
+- The K-means clustering algorithm is one of the simplest and the most commonly used clustering algorithms used to partition a data set into a pre-specified set of `k` groups.
+
+    + Partitions observations into `k` groups (clusters), such that objects within the same cluster are as similar as possible (i.e. have high intra-class similarity)
+    + Objects from different clusters are as dissimilar as possible (i.e. have low inter-class similarity)
+    + Each cluster is represented by its center (centroid) which corresponds to the mean of the observations assigned to the cluster
+    + The number of clusters `k` is pre-specified by the analyst
+    + The basic idea is to choose `k` so that the total intra-cluster variation (known as total within-cluster variation) is minimized
+
+- The standard algorithm is the Hartigan-Wong algorithm (1979)
+
+    + Each observation is assigned to one of `k` clusters
+    + Defines the total within-cluster variation as the sum of squared distances Euclidean distances between items and the corresponding centroid
+    + Algorithm stops after the sum of the squared distances between the observations to their assigned cluster centroids is minimized
+    + $x_i$ represents the $i^{th}$ data point belonging to cluster $C_k$
+    + $\mu_k$ is the mean value of the points assigned to the cluster $C_k$
+
+$$
+W(C_k) = \sum_{x_i \in C_k}(x_i - \mu_k)^2
+$$
+
+- We define the total within-cluster variation as follows:
+
+$$
+tot.withiness = \sum^k_{k=1}W(C_k) = \sum^k_{k=1}\sum_{x_i \in C_k}(x_i - \mu_k)^2
+$$
+
+- The *total within-cluster sum of square* measures the compactness (goodness) of the clustering and should ideally be as small as possible
+
+- It should be noted that as stated <a target=' ' href='https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html'>here</a> the default method used `sklearn.cluster.kmeans` is either Lloyd’s or Elkan’s algorithm
+
+- For more on the differences between the algorithms check out <a target=' ' href='https://stackoverflow.com/questions/20446053/k-means-lloyd-forgy-macqueen-hartigan-wong'>this site</a> 
+
+## K-Means steps
+
+- K-means algorithm can be summarized as follows
+
+    1. Specify the number of clusters (K) to be created (by the analyst)
+    2. Select randomly k objects from the data set as the initial cluster centers or means
+    3. Assigns each observation to their closest centroid, based on the Euclidean distance between the object and the centroid
+    4. For each of the k clusters update the cluster centroid by calculating the new mean values of all the data points in the cluster. The centroid of a Kth cluster is a vector of length *p* containing the means of all variables for the observations in the kth cluster; *p* is the number of variables.
+    5. Iterate steps 3 and 4 until the cluster assignments stop changing or the maximum number of iterations is reached
+
+- The algorithm stops when the total within sum of squares value *converges* (the value in the iteration is the same that obtained in the previous iteration)
+
+# Determining the Optimal number of Clusters using K-means
+
+## Determining the number of clusters by visual inspection
+
+- Since `k` must be set before we start the algorithm, analysts often examine the differences between several different values of `k` 
+
+- Before implementing a K-Means model, let's look at our data using a `seaborn` scatter plot
+
+    + Each individual is represented in the `x-y` plane
+    + The `x` dimension represents the individual's annual income
+    + The `y` dimension represents the individual's spending score
+ 
+```{python, fig.width=8}
+plot = sb.scatterplot(x = "Annual Income (k$)", 
+                      y = "Spending Score (1-100)",
+                      data = df_norm)
+plt.show(plot)
+```
+
+- From the scatter plot there appears to be 5 groups (clusters) of spenders
+
+- We can further investigate these spending by adding the individuals gender
+
+```{python}
+plot = sb.scatterplot(x = "Annual Income (k$)", 
+                       y = "Spending Score (1-100)",
+                       hue = "Genre",
+                       data = df_norm)
+plt.show(plot)
+```
+
+- This plot shows that each of the five clusters is composed of equal numbers of males and females 
+
+## Implementing k-means 
+
+- Now let's implement a k-means model on each individual in the `Mall_Customers` data set
+
+    + The `init = 'k-means++'` refers to the use of the <a target=' ' href='https://en.wikipedia.org/wiki/K-means%2B%2B'>k-means++ algorithm</a> to choose initial values
+    + For more on `n_init = 10` see <a target=' ' href='https://stackoverflow.com/questions/46359490/python-scikit-learn-k-means-what-does-the-parameter-n-init-actually-do'>this link</a>
+
+```{python, message=F}
+from sklearn.cluster import KMeans
+
+# define a KMeans model
+km = KMeans(n_clusters = 5,      
+            init = 'k-means++',  
+            max_iter = 300,
+            n_init = 10,         
+            random_state = 0)
+
+# Define the values to which the KMeans model will be applied
+vals = df_norm.iloc[:, [3, 4]].values
+
+# Fit the model to the values
+y_means = km.fit(vals)
+
+# extract the total within-cluster sum of squares
+km.inertia_
+```
+
+- The obvious question is: Is this a good result?
+
+- The only way to tell with K-Means is by running the model using different values of `k` and noting how the total within-cluster sum of squares value changes 
+
+- Moreover, to aid the analyst the following list shows the three most popular methods for determining the optimal number of clusters 
+
+    1. **The Elbow method**
+    2. The Silhouette method
+    3. The Gap statistic
+
+## Using the Elbow Method to find the optimal number of clusters
+
+- Recall that the basic idea behind clustering methods is to find the number of clusters such that the total intra-cluster variation is minimized
+
+$$
+\text{minimize}\Bigg(\sum^k_{k=1}W(C_k)\Bigg)
+$$
+
+- Where $C_k$ is the $k^{th}$ cluster and $W(C_k)$ is the within-cluster variation
+
+- The total within-cluster sum of square (wcss) measures the compactness of the clustering and we want it to be as small as possible
+
+- Thus, we can use the following algorithm to define the optimal clusters:
+
+    1. Compute clustering algorithm (e.g., k-means clustering) for different values of *k*. For instance, by varying *k* from 1 to 10 clusters
+    2. For each *k*, calculate the total within-cluster sum of square (wcss)
+    3. Plot the curve of wcss according to the number of clusters *k*
+    4. The location of a bend (elbow) in the curve is generally considered as an indicator of the appropriate number of clusters
+
+- We can implement this in Python with the following code -- the results suggest that 5 is the optimal number of clusters as it appears to be the elbow in the curve 
+
+```{python, message=F}
+from sklearn.cluster import KMeans
+
+wcss = []
+for i in range(1, 11):
+    km = KMeans(n_clusters = i, init = 'k-means++', max_iter = 300, 
+                n_init = 10, random_state = 0)
+    km.fit(vals)
+    wcss.append(km.inertia_)
+    
+plot1 = sb.lineplot(x = range(1, 11), y = wcss)
+plot1.set_title('The Elbow Method', fontsize = 20)
+plot1.set_xlabel('No. of Clusters')
+plot1.set_ylabel('wcss')
+plt.show(plot1)
+```
+
+- We also visualize the clusters using the following `matplotlib` code
+
+```{python}
+km = KMeans(n_clusters = 5, 
+            init = 'k-means++', 
+            max_iter = 300, 
+            n_init = 10, 
+            random_state = 0)
+            
+y_means = km.fit_predict(vals)
+
+plt.scatter(vals[y_means == 0, 0], 
+            vals[y_means == 0, 1], 
+            s = 100, 
+            c = 'pink', 
+            label = 'tightwads')
+            
+plt.scatter(vals[y_means == 1, 0], 
+            vals[y_means == 1, 1], 
+            s = 100, 
+            c = 'yellow', 
+            label = 'typicals')
+            
+plt.scatter(vals[y_means == 2, 0], 
+            vals[y_means == 2, 1], 
+            s = 100, 
+            c = 'cyan', 
+            label = 'targets')
+            
+plt.scatter(vals[y_means == 3, 0], 
+            vals[y_means == 3, 1], 
+            s = 100, 
+            c = 'magenta', 
+            label = 'spendthrifts')
+            
+plt.scatter(vals[y_means == 4, 0], 
+            vals[y_means == 4, 1], 
+            s = 100, 
+            c = 'orange', 
+            label = 'carefuls')
+            
+plt.scatter(km.cluster_centers_[:,0], 
+            km.cluster_centers_[:,1], 
+            s = 50, 
+            c = 'blue', 
+            label = 'centroids')
+
+plt.style.use('fivethirtyeight')
+plt.title('K Means Clustering', fontsize = 20)
+plt.xlabel('Annual Income')
+plt.ylabel('Spending Score')
+plt.legend()
+plt.grid()
+plt.show()
+```
+
+- Here's how to recreate the same plot using `seaborn` - much cleaner
+
+```{python}
+km = KMeans(n_clusters = 5, 
+            init = 'k-means++', 
+            max_iter = 300, 
+            n_init = 10, 
+            random_state = 0)
+            
+y_means = km.fit_predict(vals)
+
+df2 = df_norm
+df2["clusters"] = "people"
+
+df2.loc[y_means == 0, "clusters"] = "tightwads"
+df2.loc[y_means == 1, "clusters"] = "typicals"
+df2.loc[y_means == 2, "clusters"] = "targets"
+df2.loc[y_means == 3, "clusters"] = "spendthrifts"
+df2.loc[y_means == 4, "clusters"] = "carefuls"
+
+plot2 = sb.scatterplot(x = "Annual Income (k$)",
+                       y = "Spending Score (1-100)",
+                       hue = 'clusters', 
+                       data = df2)
+
+plot2.set_title('K Means Clustering', fontsize = 20)
+plot2.set_xlabel('Annual Income')
+plot2.set_ylabel('Spending Score')
+plt.show(plot2)
+```
+
+- This result gives a clear insight about the different segments of the customers in the data set
+
+    + There are clearly 5 types of customers
+    + These customer types are based on each customer's annual income and spending habits 
+    + We refer to the customers in each of these clusters as tightwads, typicals, targets, spendthrifts, and carefuls
+
+## Clusters of Customers Based on their Ages
+
+- Suppose now that we wanted to group customers based on their age and spending habits
+
+- This can easily be done by defining a second set of values which include columns 2 and 4 from the original `DataFrame`
+
+```{python}
+vals2 = df_norm.iloc[:, [2, 4]].values
+```
+
+- Implementing the K-means algorithm on this new set of values can be done in the same manner as was shown previously 
+
+```{python, fig.width=9}
+from sklearn.cluster import KMeans
+
+wcss = []
+for i in range(1, 11):
+    kmeans = KMeans(n_clusters = i, init = 'k-means++', max_iter = 300, n_init = 10, random_state = 0)
+    kmeans.fit(vals2)
+    wcss.append(kmeans.inertia_)
+
+plot3 = sb.lineplot(x = range(1, 11), y = wcss)
+plot3.set_title('The Elbow Method: Age|Spending', fontsize = 20)
+plot3.set_xlabel('# Clusters')
+plot3.set_ylabel('wcss')
+plt.show(plot3)
+```
+
+- Considering customer age and spending habits we see that there are now 4 types of customer
+
+- We can visualize these type of customer using the code below
+
+```{python}
+kmeans = KMeans(n_clusters = 4, 
+                init = 'k-means++', 
+                max_iter = 300, 
+                n_init = 10, 
+                random_state = 0)
+                
+ymeans = kmeans.fit_predict(vals2)
+
+plt.rcParams['figure.figsize'] = (10, 10)
+plt.title('Cluster of Ages', fontsize = 30)
+
+plt.scatter(vals2[ymeans == 0, 0], 
+            vals2[ymeans == 0, 1], 
+            s = 100, 
+            c = 'pink', 
+            label = 'Usual Customers')
+            
+plt.scatter(vals2[ymeans == 1, 0], 
+            vals2[ymeans == 1, 1], 
+            s = 100, 
+            c = 'orange', 
+            label = 'Priority Customers')
+            
+plt.scatter(vals2[ymeans == 2, 0], 
+            vals2[ymeans == 2, 1], 
+            s = 100, 
+            c = 'lightgreen', 
+            label = 'Target Customers(Young)')
+            
+plt.scatter(vals2[ymeans == 3, 0], 
+            vals2[ymeans == 3, 1], 
+            s = 100, 
+            c = 'red', 
+            label = 'Target Customers(Old)')
+            
+plt.scatter(kmeans.cluster_centers_[:, 0], 
+            kmeans.cluster_centers_[:, 1],
+            s = 50, 
+            c = 'black')
+
+plt.style.use('fivethirtyeight')
+plt.xlabel('Age')
+plt.ylabel('Spending Score (1-100)')
+plt.legend()
+plt.grid()
+plt.show()
+```
+
+- We refer to these clusters as Usual Customers, Priority Customers, Senior Citizen Target Customers, Young Target Customers
+
+- These results help us to develop marketing strategies to target the members of these clusters
+
+
+
+
+
+
+
+

@@ -1,0 +1,324 @@
+# Heirarchical Clustering
+
+## Overview
+
+- Hierarchical clustering is an algorithm that groups similar objects into groups called clusters
+
+- The endpoint is a set of clusters, where each cluster is distinct from each other cluster, and the objects within each cluster are broadly similar to each other
+
+- The results are often visualized as a dendrogram, which is a nested collection of groups that looks similar to a tree
+
+##  Two types of hierarchical clustering: *agglomerative* and *divisive*
+
+- Agglomerative hierarchical clustering (AGNES) - bottoms up algorithm 
+
+    + Each object is initially considered as a single-element cluster
+    + At each step of the algorithm, the two most similar clusters are combined into a new bigger cluster (nodes)
+    + This procedure continues until all points are member of just one single big cluster (root) (see figure below)
+    + The result is a tree which can be plotted as a dendrogram
+    + This algorithm is good at identifying small clusters
+  
+- Divisive hierarchical clustering (DIANA) - top-down algorithm 
+
+    + Each object is initially considered to belong to a single cluster
+    + At each step of iteration, the most dissimilar cluster is divided into two
+    + This process continues until all objects are in their own cluster
+    + This algorithm is good at identifying large clusters
+
+- As discussed in the K-means section, the dissimilarity of observations is measured using a distance measures (Euclidean distance, Manhattan distance) 
+
+- We've seen that it’s fairly simple to compute the dissimilarity measure between two pairs of observations with the `pdist()` function 
+
+- However, a bigger question is: *How do we measure the dissimilarity between two clusters of observations?* 
+
+- A number of different cluster agglomeration methods (i.e, linkage methods) have been developed to answer to this question 
+
+- The most common types methods are listed below and are defined <a target=' ' href='https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.cluster.hierarchy.linkage.html'>here</a>
+
+    + __Maximum or complete linkage clustering:__ Computes all pairwise dissimilarities between the elements in cluster 1 and the elements in cluster 2, and considers the largest value of these dissimilarities as the distance between the two clusters (tends to produce more compact clusters)
+    + __Minimum or single linkage clustering:__ It computes all pairwise dissimilarities between the elements in cluster 1 and the elements in cluster 2, and considers the smallest of these dissimilarities as a linkage criterion (tends to produce long, “loose” clusters)
+    + __Mean or average linkage clustering:__ It computes all pairwise dissimilarities between the elements in cluster 1 and the elements in cluster 2, and considers the average of these dissimilarities as the distance between the two clusters
+    + __Centroid linkage clustering:__ It computes the dissimilarity between the centroid for cluster 1 (a mean vector of length p variables) and the centroid for cluster 2
+    + __Ward’s minimum variance method:__ It minimizes the total within-cluster variance - at each step the pair of clusters with minimum between-cluster distance are merged
+
+- We can see the differences these approaches in the following sections 
+
+## Maximum or complete linkage method
+
+```{python}
+import scipy.cluster.hierarchy as sch
+
+dendrogram = sch.dendrogram(sch.linkage(vals, method = 'complete'))
+plt.title('Hierachical Clustering: Complete Linkage', fontsize = 20)
+plt.xlabel('Customers')
+plt.ylabel('Ecuclidean Distance')
+plt.show()
+```
+
+```{python}
+from sklearn.cluster import AgglomerativeClustering
+
+hc = AgglomerativeClustering(n_clusters = 5, 
+                             affinity = 'euclidean', 
+                             linkage = 'complete')
+
+y_hc = hc.fit_predict(vals)
+
+plt.scatter(vals[y_hc == 0, 0], 
+            vals[y_hc == 0, 1], 
+            s = 100, 
+            c = 'pink', 
+            label = "tightwads")
+            
+plt.scatter(vals[y_hc == 1, 0], 
+            vals[y_hc == 1, 1], 
+            s = 100, 
+            c = 'yellow', 
+            label = "typicals")
+            
+plt.scatter(vals[y_hc == 2, 0], 
+            vals[y_hc == 2, 1], 
+            s = 100, 
+            c = 'cyan', 
+            label = 'targets')
+            
+plt.scatter(vals[y_hc == 3, 0], 
+            vals[y_hc == 3, 1], 
+            s = 100, 
+            c = 'magenta', 
+            label = 'spendthrifts')
+            
+plt.scatter(vals[y_hc == 4, 0], 
+            vals[y_hc == 4, 1], 
+            s = 100, 
+            c = 'orange', 
+            label = 'carefuls')
+            
+plt.scatter(km.cluster_centers_[:,0], 
+            km.cluster_centers_[:,1], 
+            s = 50, 
+            c = 'blue', 
+            label = 'centroid')
+
+plt.style.use('fivethirtyeight')
+plt.title('Hierachical Clustering: Complete Linkage', fontsize = 20)
+plt.xlabel('Annual Income')
+plt.ylabel('Spending Score')
+plt.legend()
+plt.grid()
+plt.show()
+```
+
+## Minimum or single linkage method
+
+```{python}
+import scipy.cluster.hierarchy as sch
+
+dendrogram = sch.dendrogram(sch.linkage(vals, method = 'single'))
+plt.title('Hierachical Clustering: Single Linkage', fontsize = 20)
+plt.xlabel('Customers')
+plt.ylabel('Ecuclidean Distance')
+plt.show()
+```
+
+```{python}
+from sklearn.cluster import AgglomerativeClustering
+
+hc = AgglomerativeClustering(n_clusters = 5, 
+                             affinity = 'euclidean', 
+                             linkage = 'single')
+
+y_hc = hc.fit_predict(vals)
+
+plt.scatter(vals[y_hc == 0, 0], 
+            vals[y_hc == 0, 1], 
+            s = 100, 
+            c = 'pink', 
+            label = "tightwads")
+            
+plt.scatter(vals[y_hc == 1, 0], 
+            vals[y_hc == 1, 1], 
+            s = 100, 
+            c = 'yellow', 
+            label = "typicals")
+            
+plt.scatter(vals[y_hc == 2, 0], 
+            vals[y_hc == 2, 1], 
+            s = 100, 
+            c = 'cyan', 
+            label = 'targets')
+            
+plt.scatter(vals[y_hc == 3, 0], 
+            vals[y_hc == 3, 1], 
+            s = 100, 
+            c = 'magenta', 
+            label = 'spendthrifts')
+            
+plt.scatter(vals[y_hc == 4, 0], 
+            vals[y_hc == 4, 1], 
+            s = 100, 
+            c = 'orange', 
+            label = 'carefuls')
+            
+plt.scatter(km.cluster_centers_[:,0], 
+            km.cluster_centers_[:,1], 
+            s = 50, 
+            c = 'blue', 
+            label = 'centroid')
+
+plt.style.use('fivethirtyeight')
+plt.title('Hierachical Clustering: Single Linkage', fontsize = 20)
+plt.xlabel('Annual Income')
+plt.ylabel('Spending Score')
+plt.legend()
+plt.grid()
+plt.show()
+```
+
+## Mean or average linkage method
+
+```{python}
+import scipy.cluster.hierarchy as sch
+
+dendrogram = sch.dendrogram(sch.linkage(vals, method = 'average'))
+plt.title('Hierachical Clustering: Average Linkage', fontsize = 20)
+plt.xlabel('Customers')
+plt.ylabel('Ecuclidean Distance')
+plt.show()
+```
+
+```{python}
+from sklearn.cluster import AgglomerativeClustering
+
+hc = AgglomerativeClustering(n_clusters = 5, 
+                             affinity = 'euclidean', 
+                             linkage = 'average')
+
+y_hc = hc.fit_predict(vals)
+
+plt.scatter(vals[y_hc == 0, 0], 
+            vals[y_hc == 0, 1], 
+            s = 100, 
+            c = 'pink', 
+            label = "tightwads")
+            
+plt.scatter(vals[y_hc == 1, 0], 
+            vals[y_hc == 1, 1], 
+            s = 100, 
+            c = 'yellow', 
+            label = "typicals")
+            
+plt.scatter(vals[y_hc == 2, 0], 
+            vals[y_hc == 2, 1], 
+            s = 100, 
+            c = 'cyan', 
+            label = 'targets')
+            
+plt.scatter(vals[y_hc == 3, 0], 
+            vals[y_hc == 3, 1], 
+            s = 100, 
+            c = 'magenta', 
+            label = 'spendthrifts')
+            
+plt.scatter(vals[y_hc == 4, 0], 
+            vals[y_hc == 4, 1], 
+            s = 100, 
+            c = 'orange', 
+            label = 'carefuls')
+            
+plt.scatter(km.cluster_centers_[:,0], 
+            km.cluster_centers_[:,1], 
+            s = 50, 
+            c = 'blue', 
+            label = 'centroid')
+
+plt.style.use('fivethirtyeight')
+plt.title('Hierachical Clustering: Average Linkage', fontsize = 20)
+plt.xlabel('Annual Income')
+plt.ylabel('Spending Score')
+plt.legend()
+plt.grid()
+plt.show()
+```
+
+## Centroid linkage method
+
+```{python}
+import scipy.cluster.hierarchy as sch
+
+dendrogram = sch.dendrogram(sch.linkage(vals, method = 'centroid'))
+plt.title('Hierachical Clustering: Centroid Linkage', fontsize = 20)
+plt.xlabel('Customers')
+plt.ylabel('Ecuclidean Distance')
+plt.show()
+```
+
+K## Ward's minimum variance method
+
+```{python}
+import scipy.cluster.hierarchy as sch
+
+dendrogram = sch.dendrogram(sch.linkage(vals, method = 'ward'))
+plt.title('Hierachical Clustering: Ward Linkage', fontsize = 20)
+plt.xlabel('Customers')
+plt.ylabel('Ecuclidean Distance')
+plt.show()
+```
+
+- We can further visualize the results of hierarchical clustering
+
+```{python}
+from sklearn.cluster import AgglomerativeClustering
+
+hc = AgglomerativeClustering(n_clusters = 5, 
+                             affinity = 'euclidean', 
+                             linkage = 'ward')
+
+y_hc = hc.fit_predict(vals)
+
+plt.scatter(vals[y_hc == 0, 0], 
+            vals[y_hc == 0, 1], 
+            s = 100, 
+            c = 'pink', 
+            label = "tightwads")
+            
+plt.scatter(vals[y_hc == 1, 0], 
+            vals[y_hc == 1, 1], 
+            s = 100, 
+            c = 'yellow', 
+            label = "typicals")
+            
+plt.scatter(vals[y_hc == 2, 0], 
+            vals[y_hc == 2, 1], 
+            s = 100, 
+            c = 'cyan', 
+            label = 'targets')
+            
+plt.scatter(vals[y_hc == 3, 0], 
+            vals[y_hc == 3, 1], 
+            s = 100, 
+            c = 'magenta', 
+            label = 'spendthrifts')
+            
+plt.scatter(vals[y_hc == 4, 0], 
+            vals[y_hc == 4, 1], 
+            s = 100, 
+            c = 'orange', 
+            label = 'carefuls')
+            
+plt.scatter(km.cluster_centers_[:,0], 
+            km.cluster_centers_[:,1], 
+            s = 50, 
+            c = 'blue', 
+            label = 'centroid')
+
+plt.style.use('fivethirtyeight')
+plt.title('Hierachical Clustering: Ward Linkage', fontsize = 20)
+plt.xlabel('Annual Income')
+plt.ylabel('Spending Score')
+plt.legend()
+plt.grid()
+plt.show()
+```
+
+
