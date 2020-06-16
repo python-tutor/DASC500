@@ -1,0 +1,941 @@
+---
+title: "DASC 500: Introduction to Data Analytics"
+subtitle: "A Gentle Introduction to Supervised Learning Algorithms"
+date: '`r format(Sys.Date(), "%d %B %Y")`'
+footer: "DASC 500 (Introduction Supervised Learning Algorithms)"
+author: "Maj Jason Freels PhD"
+output: 
+  slidy_presentation:
+    smart: no
+    fig_caption: yes
+graphics: yes
+---
+
+# Overview
+
+<style>
+div.plotly.html-widget {width: 800px;
+                   height: 800px;
+                   margin-left:auto;
+                   margin-right:auto;}
+</style>
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(echo = FALSE, 
+                      fig.align = 'center',
+                      message = F,
+                      warning = F)
+
+shiny::includeCSS("../resources/css/flatly-style.css")
+shiny::includeCSS("../resources/css/r-title.css")
+shiny::includeScript("../resources/js/jquery.min.js")
+shiny::includeScript("../resources/js/jkf-scroll.js")
+
+library(knitr)
+library(reticulate)
+library(rprojroot)
+#reticulate::use_python("C:/Users/Aubur/Anaconda3/python.exe")
+knitr::opts_chunk$set(echo = TRUE, message = F, comment = NA, warning = F)
+root = find_root(is_git_root)
+```
+
+```{python, echo=F}
+import warnings
+warnings.filterwarnings("ignore")
+```
+
+## In the previous class we introduced...
+
+- Supervised and unsupervised learning algorithms
+
+- The importance of loss functions
+
+    + Convex and non-convex loss functions 
+    + The Least squares loss function
+
+- Ordinary least squares and simple linear regression
+
+    + Model building
+    + Understanding model results and model diagnostics
+    + Making predictions
+
+## In this class...
+
+- Extend to multiple linear regression
+
+- Add details to our understanding of model diagnostics
+
+- Other concepts
+
+# Linear Regression
+
+## Overview
+
+- Simple approach for supervised learning
+
+- A useful tool for predicting a quantitative response
+
+- Is a useful and widely used statistical learning method
+
+- Serves as a good jumping-off point for newer approaches: 
+
+    + Many statistical learning algorithms are generalizations or extensions of linear regression
+    
+    + Important to understand linear regression before studying more complex learning algorithms
+
+- <font color="d6d6d6">This lecture serves as an introduction to simple linear regression and will cover the following topics</font>
+
+    1. <font color="d6d6d6">Libraries you'll need to reproduce this analysis</font>
+    2. <font color="d6d6d6">Reviewing, accessing, and preparing the data for modeling</font>
+    3. <font color="d6d6d6">Simple linear regression: Predicting a quantitative response $Y$ with a single predictor variable $X$</font>
+    
+- In a subsequent lecture we'll extend this to discuss the following
+
+    4. Multiple linear regression: Predicting a quantitative response $Y$ with multiple predictor variables $X_1, X_2, \dots, X_p$
+    5. Incorporating interactions between the variables
+    6. A few other considerations to know about
+
+# Replication Requirements
+
+## Importing libraries
+
+- First, let's be sure to import the Python libraries we'll need to complete this analysis
+
+```{python import}
+import random
+import numpy as np
+import pandas as pd
+import seaborn as sb
+import matplotlib.pyplot as plt
+import scipy as sp
+import statsmodels.api as sm
+import statistics as st
+```
+
+## understanding the data
+
+- This lecture uses the [advertising](http://www-bcf.usc.edu/~gareth/ISL/Advertising.csv) data set made available by the authors of the text [An Introduction to Statistical Learning](http://www-bcf.usc.edu/~gareth/ISL/index.html)
+
+- The data set contains four columns of advertising-related features captured across 200 markets
+
+    + `TV`: Money spent on television advertising (in thousands of dollars)
+    + `radio`: Money spent on radio (in thousands of dollars)
+    + `newspaper`: Money spent on newspaper advertising (in thousands of dollars)
+    + `Sales`: return on the advertising investment (in dollars) 
+
+- The question to be addressed by analyzing this data set
+
+    + Is there are relationship between `Sales` and the way that advertising dollars are spent
+    + To what degree does money spent on `TV` advertising impact `Sales`
+    + To what degree does money spent on `radio` advertising impact `Sales`
+    + To what degree does money spent on `newspaper` advertising impact `Sales`
+    + What type of advertising provides the greatest impact on `Sales`
+    
+## Accessing the data
+
+- To access the data, we'll extract it from the CSV file and store it as a `pandas` DataFrame using `read_csv()`
+
+    + Assign the URL to a text string
+    + Assing the extracted data to a DataFrame called `df`
+
+```{python read_data}
+data_url = "http://faculty.marshall.usc.edu/gareth-james/ISL/Advertising.csv"
+
+df = pd.read_csv(data_url)
+```
+
+- Note that extracting the data in this manner results in an un-needed column containing the row numbers
+
+```{python advertising_head1}
+df.head()
+```
+
+- Instead, use the `usecols` argument to select which columns we want to extract
+
+- Note that we supply these column names as a list using `{ }`
+
+```{python read_data2}
+df2 = pd.read_csv(data_url,
+                  usecols = {'TV','newspaper','radio','sales'})
+
+df2.head()
+```
+
+# Preparing Our Data
+
+## Partitioning the data
+
+- Initial discovery of relationships is usually done with a training set while a test set is used for evaluating whether the discovered relationships hold
+
+    + A training set is used to discover potentially predictive relationships 
+    + A test set is used to assess the strength and utility of a predictive relationship.  
+
+- We'll use a 60% / 40% split to partition the data set
+
+    + We train our model on 60% of the data 
+    + Then test the model performance on the 40% of the data that was withheld
+
+```{python train_test}
+train_data = df2.sample(frac = 0.6)
+test_data  = df2.drop(train_data.index)
+```
+
+# Multiple linear regression - Overview
+
+- In this lecture we will build three models
+
+    + A simple linear regression model (the model we built last time)
+    + A multiple linear regression that includes `TV`, `radio`, and `newspaper` as predictors
+    + A multiple linear regression model that includes an interaction term
+
+## Simple linear regression model
+
+- Recall from last time that we built a simple regression model in Python using the `OLS()` (ordinary least squares) function from the `api` module in the `statsmodels` library
+
+- In matrix notation, this model is expressed as
+
+$$
+\begin{aligned}
+\boldsymbol{y} &= \beta_0 + \beta_{1}\boldsymbol{X} + \epsilon\\\\
+\begin{bmatrix}
+y_{1} \\
+y_{2} \\
+\vdots  \\
+y_{m} 
+\end{bmatrix} &=
+\begin{bmatrix}
+1& X_{1}\\
+1& X_{2}\\
+\vdots & \vdots \\
+1& X_{m} 
+\end{bmatrix}
+\begin{bmatrix}
+\beta_{0} \\
+\beta_{1}
+\end{bmatrix}+
+\begin{bmatrix}
+\epsilon_{1} \\
+\epsilon_{2} \\
+\vdots  \\
+\epsilon_{m} 
+\end{bmatrix}
+\end{aligned}
+$$
+
+- where: 
+
+    + $y$ is a vector of responses
+    + $X$ is a matrix of input values
+    + $\beta_0$ is an intercept parameter
+    + $\beta_1$ is the effect parameter for $X_1$
+    + $\epsilon$ is a mean-zero random error term
+
+- To build this model, we first need to define the $X$-matrix of inputs and the $y$ vector of responses from the training data - this is done below  
+
+```{python X_y1}
+y  = train_data["sales"]
+X1 = train_data[{"TV"}]
+```
+
+- Then, we need to add the column of ones to the $X$-matrix to account for the intercept term
+
+```{python add_constant1}
+X1 = sm.add_constant(X1)
+```
+
+- With $X$ and $y$ defined we build the model and fit it to the data
+
+```{python OLS1}
+model1 = sm.OLS(y, X1)
+
+model1_fit = model1.fit()
+```
+
+## Multiple linear regression model (w/o interaction)
+
+<!-- - Multiple linear regression is an approach for predicting a quantitative response $Y$ on the basis of a More than one predictor variable denoted by $X$.  -->
+
+<!-- - Assumes there is an approximately a linear relationship between $X$ and $Y$ -->
+
+- In this case we wish to model the relationship between the response `sales` and the predictors `TV`, `radio`, and `newspaper`
+
+- In matrix notation, this model is expressed as
+
+$$
+\begin{aligned}
+\boldsymbol{y} &= \beta_0 + \beta_{1}\boldsymbol{X}_1 + \beta_{2}\boldsymbol{X}_2 + \beta_{3}\boldsymbol{X}_3 + \epsilon\\\\
+\begin{bmatrix}
+y_{1} \\
+y_{2} \\
+\vdots  \\
+y_{m} 
+\end{bmatrix} &=
+\begin{bmatrix}
+1& X_{11} & X_{21} & X_{31}\\
+1& X_{12} & X_{22} & X_{32}\\
+\vdots & \vdots & \vdots & \vdots \\
+1& X_{1m} & X_{2m} & X_{3m}
+\end{bmatrix}
+\begin{bmatrix}
+\beta_{0} \\
+\beta_{1} \\
+\beta_{2} \\
+\beta_{3} 
+\end{bmatrix}+
+\begin{bmatrix}
+\epsilon_{1} \\
+\epsilon_{2} \\
+\vdots  \\
+\epsilon_{m} 
+\end{bmatrix}
+\end{aligned}
+$$
+
+- where: 
+
+    + $y_1,\ldots,y_m$ is the vector of responses
+    + $X$ is a matrix of input values
+    + $\beta_0$ is an intercept parameter
+    + $\beta_1$ is the effect parameter for the predictor $X_1$
+    + $\beta_2$ is the effect parameter for the predictor $X_2$
+    + $\beta_3$ is the effect parameter for the predictor $X_3$
+    + $\epsilon$ is a mean-zero random error term
+
+- To build this model, we only need to define a second $X$-matrix of inputs as the $y$ vector of responses is the same 
+
+```{python X_y2}
+X2 = train_data[{"TV","newspaper","radio"}]
+```
+
+- Then, we need to add the column of ones to the $X$-matrix to account for the intercept term
+
+```{python add_constant2}
+X2 = sm.add_constant(X2)
+```
+
+- With $X$ and $y$ defined we build the our multiple regression model called `model2` and fit it to the data
+
+```{python OLS2}
+model2 = sm.OLS(y, X2)
+
+model2_fit = model2.fit()
+```
+
+## Multiple linear regression model (with an interaction term)
+
+<!-- - Multiple linear regression is an approach for predicting a quantitative response $Y$ on the basis of a More than one predictor variable denoted by $X$.  -->
+
+<!-- - Assumes there is an approximately a linear relationship between $X$ and $Y$ -->
+
+- As we'll see below `newspaper` is not a statistically significant predictor for the response 
+
+- Moreover, we'll see that there is a multiplicative effect between the predictors `TV` and `radio` 
+
+- Therefore, in this case we build a model to reflect these notions
+
+- In matrix notation, this model is expressed as
+
+$$
+\begin{aligned}
+\boldsymbol{y} &= \beta_0 + \beta_{1}\boldsymbol{X}_1 + \beta_{2}\boldsymbol{X}_2 + \beta_{3}\boldsymbol{X}_1\boldsymbol{X}_2 + \epsilon\\\\
+\begin{bmatrix}
+y_{1} \\
+y_{2} \\
+\vdots  \\
+y_{m} 
+\end{bmatrix} &=
+\begin{bmatrix}
+1& X_{11} & X_{21} & X_{11}X_{21}\\
+1& X_{12} & X_{22} & X_{12}X_{22}\\
+\vdots & \vdots & \vdots & \vdots \\
+1& X_{1m} & X_{2m} & X_{1m}X_{2m}
+\end{bmatrix}
+\begin{bmatrix}
+\beta_{0} \\
+\beta_{1} \\
+\beta_{2} \\
+\beta_{3} 
+\end{bmatrix}+
+\begin{bmatrix}
+\epsilon_{1} \\
+\epsilon_{2} \\
+\vdots  \\
+\epsilon_{m} 
+\end{bmatrix}
+\end{aligned}
+$$
+
+- where: 
+
+    + $y_1,\ldots,y_m$ is the vector of responses
+    + $X$ is a matrix of input values
+    + $\beta_0$ is an intercept parameter
+    + $\beta_1$ is the effect parameter for the predictor $X_1$
+    + $\beta_2$ is the effect parameter for the predictor $X_2$
+    + $\beta_3$ is the effect parameter for the interaction $X_1X_2$
+    + $\epsilon$ is a mean-zero random error term
+
+- To build this model, we only need to define a third $X$-matrix of inputs as the $y$ vector of responses is the same 
+
+```{python X_y3}
+train_data["rt"] = train_data["radio"] * train_data["TV"]
+test_data["rt"]  = test_data["radio"] * test_data["TV"]
+
+X3 = train_data[{"TV","radio","rt"}]
+```
+
+- Then, we need to add the column of ones to the $X$-matrix to account for the intercept term
+
+```{python add_constant3}
+X3 = sm.add_constant(X3)
+```
+
+- With $X$ and $y$ defined we build the our multiple regression model called `model2` and fit it to the data
+
+```{python OLS3}
+model3 = sm.OLS(y, X3)
+
+model3_fit = model3.fit()
+```
+
+# Inspecting the model
+
+## Visually and Numerically inspecting the models
+
+- Building a linear regression model is only half of the work
+
+- To use the model you must should check that it conforms to the assumptions of linear regression
+
+    + The model is linear in parameters
+    + The mean of the residuals is zero
+    + The residuals are normally distributed
+
+- In the following sections we take a look at several numeric and visual summaries for each model
+
+    + Model numeric summaries
+    + Residual plots
+    + Quantile-quantile plots
+
+# Inspecting Model Parameters
+
+## Overview 
+
+- After fitting the model to the data it's important to know if the these coefficients are statistically significant
+
+    + Can we state that these coefficients are statistically different from 0?  
+    + To do that we can start by assessing the standard errors (SE) for the parameters $\beta_0$ and $\beta_1$
+    + These values are computed as shown below where $\sigma^2 = Var(\epsilon)$
+
+$$
+\begin{aligned}
+SE(\beta_0)^2 &= \sigma^2\bigg[\frac{1}{n}+\frac{\bar{x}^2}{\sum^n_{i=1}(x_i - \bar{x})^2} \bigg]\\\\
+SE(\beta_1)^2 &= \frac{\sigma^2}{\sum^n_{i=1}(x_i - \bar{x})^2}
+\end{aligned}
+$$
+
+- The model summary show the 95% confidence interval for $\beta_1$
+
+    + Since zero is not in this interval we can conclude that as the TV advertising budget increases by $1,000 we can expect the sales to increase
+    + This is also supported by the *t-statistic* provided by our results, which are computed by
+
+$$
+t=\frac{\beta_1 - 0}{SE(\beta_1)}
+$$
+
+- This statistic measures the number of standard deviations that $\beta_1$ is away from 0
+
+    + A large *t-statistic* will produce a small *p-value* 
+    + The p-value indicates that it is unlikely to observe such a substantial association between the predictor variable and the response due to chance
+    + We therefore conclude that a relationship between TV advertising budget and sales exists
+
+## Parameter summaries for `model1`
+
+- The parameter summary table for `model1` can be produced using the following code
+
+```{python model1_params, echo=T}
+parm1 = model1_fit.summary().tables[1]
+print(parm1)
+```
+
+- Observing these results shows that the resulting model may be expressed as  
+
+```{python, echo=FALSE}
+prm_0 = model1_fit.params[0]
+prm_1 = model1_fit.params[1]
+```
+
+$$
+\text{sales} = `r round(py["prm_0"], 4)` + `r round(py["prm_1"], 4)`X_1 + \epsilon\
+$$
+
+- This expression states that when the `TV` advertising budget is zero we can expect `sales` to be `r round(py["prm_0"], 4)*1000`.  And for every $1,000 increase in the `TV` advertising budget we expect the average increase in `sales` to be `r round(py["prm_1"], 4)*1000` units
+
+## Parameter summaries for `model2`
+
+- The parameter summary table for `model2` can be produced using the following code
+
+```{python model2_params, echo=!T}
+parm2 = model2_fit.summary().tables[1]
+print(parm2)
+```
+
+- Observing these results shows that the resulting model may be expressed as  
+
+```{python, echo=FALSE}
+prm_0 = model2_fit.params[0]
+prm_1 = model2_fit.params[1]
+prm_2 = model2_fit.params[2]
+prm_3 = model2_fit.params[3]
+```
+
+$$
+\text{sales} = `r round(py["prm_0"], 4)` + `r round(py["prm_1"], 4)`X_1 + `r round(py["prm_2"], 4)`X_2 + `r round(py["prm_3"], 4)`X_3 \epsilon\
+$$
+
+## Parameter summaries for `model3`
+
+- The parameter summary table for `model3` can be produced using the following code
+
+```{python model3_params, echo=T}
+parm3 = model3_fit.summary().tables[1]
+print(parm3)
+```
+
+- Observing these results shows that the resulting model may be expressed as  
+
+```{python, echo=FALSE}
+prm_0 = model3_fit.params[0]
+prm_1 = model3_fit.params[1]
+prm_2 = model3_fit.params[2]
+prm_3 = model3_fit.params[3]
+```
+
+$$
+\text{sales} = `r round(py["prm_0"], 4)` + `r round(py["prm_1"], 4)`X_1 + `r round(py["prm_2"], 4)`X_2 + `r round(py["prm_3"], 4)`X_1X_2 \epsilon\
+$$
+
+# Inspecting the model's goodness of fit
+
+## Overview
+
+- To understand the extent to which the model fits the data, we assess the model's  *goodness-of-fit* using three tools:
+
+    1. Relative standard error (RSE)
+    2. *R* squared ($R^2$)
+    3. F-statistic
+
+- Relative standard error
+
+    + The RSE is a measure of the overall accuracy of the model
+    + The RSE is an estimate of the standard deviation of $\epsilon$ 
+    + It's the average amount that the response will deviate from the true regression line. 
+    + The value of RSE is computed by the expression shown below
+
+$$
+RSE = \sqrt{\frac{1}{n-2}\sum^n_{i=1}(y_i - \hat{y}_i)^2}
+$$
+- Because RSE is measured in the units of $Y$, it is not always clear what constitutes a good RSE
+
+- Therefore, the $R^2$ statistic provides an alternative measure of model fit
+
+    + Represents the proportion of variance explained and so it always takes on a value between 0 and 1
+    + Is independent of the scale of $Y$
+    + Is a function of *residual sum of squares* (RSS) and *total sum of squares* (TSS):
+
+$$
+R^2 = 1 - \frac{RSS}{TSS}= 1 - \frac{\sum^n_{i=1}(y_i-\hat{y}_i)^2}{\sum^n_{i=1}(y_i-\bar{y}_i)^2}
+$$
+
+- Lastly, the *F-statistic* is used to see if at least one predictor variable has a non-zero coefficient
+
+    + This becomes more important once we start using multiple predictors as in multiple linear regression; however
+    + The F-statistic is computed as
+
+$$
+F = \frac{(TSS-RSS)/p}{RSS/(n-p-1)}
+$$
+
+## Goodness of fit for `model1`
+
+- We can produce a table of values using the following
+
+```{python}
+gof1 = model1_fit.summary().tables[0]
+print(gof1)
+```
+
+- You'll note that the RSE is not included in this table, but we can compute it using the following code
+
+```{python RSE1}
+y_pred1 = model1_fit.predict(X1)
+resid1 = y - y_pred1
+rss1 = np.sum(resid1**2)
+RSE1 = np.sqrt(rss1 / (len(y) - 2))
+
+RSE1
+```
+
+- This value for RSE means the actual sales in each market will deviate from the true regression line by approximately `r round(py["RSE1"],4)*1000` units, on average.
+
+- The value of the $R^2$ statistic is shown in the `model1_fit.summary()` but we can extract it from the fit object using the code below
+
+```{python r21}
+model1_r2 = model1_fit.rsquared
+```
+
+- Thus, we see that `model1` explains `r py["model1_r2"]*100`% of variance in the data.
+
+- A larger F-statistic will produce a statistically significant p-value ($p < 0.05$)
+
+- The value of the F-statistic is shown in the table but can also be extracted using the code below
+
+```{python}
+model1_F = model1_fit.fvalue
+
+model1_F_pval = model1_fit.f_pvalue
+
+model1_F , model1_F_pval
+```
+
+- In this case we see in the model summary statement that the F-statistic is `r round(py["model1_F"],4)` producing a p-value of $p < `r py["model1_F_pval"]`$.
+
+- Taken together the RSE, $R^2$, and F-statistic values indicate that this simple linear regression model has an okay fit, but we could likely do better
+
+
+## Goodness of fit for `model2`
+
+```{python}
+gof2 = model2_fit.summary().tables[0]
+print(gof2)
+```
+
+```{python r22}
+model2_r2 = model2_fit.rsquared
+model2_r2
+```
+
+```{python}
+model2_F = model2_fit.fvalue
+
+model2_F_pval = model2_fit.f_pvalue
+
+model2_F , model2_F_pval
+```
+
+## Goodness of fit for `model3`
+
+```{python}
+gof3 = model3_fit.summary().tables[0]
+print(gof3)
+```
+
+```{python r23}
+model3_r2 = model3_fit.rsquared
+model3_r2
+```
+
+```{python}
+model3_F = model3_fit.fvalue
+
+model3_F_pval = model3_fit.f_pvalue
+
+model3_F , model3_F_pval
+```
+
+# Visually Inspecting the models
+
+## Checking that the mean of the residuals is zero
+
+- The result of a linear regression model is a line of best fit
+
+- The data points usually don’t fall exactly on this regression equation line
+
+- A residual is the vertical distance between a data point and the regression line
+
+- For each data point we get one residual
+
+    + If the point falls above the regression line the resdiual is positive 
+    + If the point falls below the regression line the residual is negative
+    + If the regression line passes through the point, the residual for that observation is zero
+
+- We want to see that the residuals are approximately equally distributed about zero
+
+- We can check to see if the mean of the residuals is in fact zero by extracting the residuals from the model and then taking the mean of these values
+
+- This is done in the code chunk below - we see that the result is a value that, numerically speaking, is zero 
+
+```{python mean_residuals}
+## model residuals
+model1_residuals = model1_fit.resid
+st.mean(model1_residuals)
+
+model2_residuals = model2_fit.resid
+st.mean(model2_residuals)
+
+model3_residuals = model3_fit.resid
+st.mean(model3_residuals)
+```
+
+## Checking for constant variance among the residuals
+
+- This is typically verified through graphical means by inspecting the residual plot
+
+- We want to see that there's no shape in residuals moving from right to left - essentially a rectangular cloud of points
+
+- Observing the residual plot for this data set we see that there is a distinct funnel shape where the variance increases as we move from left to right - this is not good
+
+- Often we implement a transformation on either the predictor (input) variable or the response (output) variable (or both) to ensure that this assumption is met
+
+- In the code chunk below you can explore implementing different types of transformations on the responses to see how they impact the shape of the residual plot  
+
+```{python residplot1, out.width="50%"}
+plot1 = sb.residplot(model1_fit.fittedvalues, 
+                     train_data.columns[3], 
+                     data = train_data,
+                     lowess = True,
+                     scatter_kws = {'alpha': 0.5},
+                     line_kws = {'color': 'red', 'lw': 1, 'alpha': 0.8})
+
+plot1.set_title('Model1: Simple Linear Regression - Residuals vs Fitted')
+plot1.set_xlabel('Fitted values')
+plot1.set_ylabel('Residuals');
+
+plt.show(plot1)
+```
+
+```{python residplot2, out.width="50%", echo=F}
+plot2 = sb.residplot(model2_fit.fittedvalues, 
+                     train_data.columns[3], 
+                     data = train_data,
+                     lowess = True,
+                     scatter_kws = {'alpha': 0.5},
+                     line_kws = {'color': 'red', 'lw': 1, 'alpha': 0.8})
+
+plot2.set_title('Model2: Multiple Linear Regression (w/o interaction) - Residuals vs Fitted')
+plot2.set_xlabel('Fitted values')
+plot2.set_ylabel('Residuals');
+
+plt.show(plot2)
+```
+
+```{python residplot3, out.width="50%", echo=F}
+plot3 = sb.residplot(model3_fit.fittedvalues, 
+                     train_data.columns[3], 
+                     data = train_data,
+                     lowess = True,
+                     scatter_kws = {'alpha': 0.5},
+                     line_kws = {'color': 'red', 'lw': 1, 'alpha': 0.8})
+
+plot3.set_title('Model3: Multiple Linear Regression (with interaction) - Residuals vs Fitted')
+plot3.set_xlabel('Fitted values')
+plot3.set_ylabel('Residuals');
+
+plt.show(plot3)
+```
+
+## Checking that the residuals are normally distributed
+
+- This is another assumption that is often checked via graphical methods
+
+- We are looking to verify that the residuals are normally distributed by plotting them on what is know as a quantile-quantile plot (or QQ plot)
+
+```{python qqplot1, eval=!F, out.width="50%"}
+from statsmodels.graphics.gofplots import ProbPlot
+
+model1_norm_residuals = model1_fit.get_influence().resid_studentized_internal
+
+QQ = ProbPlot(model1_norm_residuals)
+
+plot_lm1 = QQ.qqplot(line = '45',
+                     alpha = 0.5, 
+                     color = '#4C72B0', 
+                     lw = 1)
+
+plot_lm1.axes[0].set_title('model1: Simple Linear Regression - Normal Q-Q')
+plot_lm1.axes[0].set_xlabel('Theoretical Quantiles')
+plot_lm1.axes[0].set_ylabel('Standardized Residuals');
+
+# annotations
+abs_norm_resid = np.flip(np.argsort(np.abs(model1_norm_residuals)), 0)
+abs_norm_resid_top_3 = abs_norm_resid[:3]
+
+for r, i in enumerate(abs_norm_resid_top_3):
+    plot_lm1.axes[0].annotate(i,
+                               xy=(np.flip(QQ.theoretical_quantiles, 0)[r],
+                                   model1_norm_residuals[i]));
+plt.show(plot_lm1)
+```
+
+```{python qqplot2, eval=!F, out.width="50%", echo=F}
+from statsmodels.graphics.gofplots import ProbPlot
+
+model2_norm_residuals = model2_fit.get_influence().resid_studentized_internal
+
+QQ = ProbPlot(model2_norm_residuals)
+
+plot_lm2 = QQ.qqplot(line = '45',
+                     alpha = 0.5, 
+                     color = '#4C72B0', 
+                     lw = 1)
+
+plot_lm2.axes[0].set_title('model2: Multiple linear regression (w/o interaction) - Normal Q-Q')
+plot_lm2.axes[0].set_xlabel('Theoretical Quantiles')
+plot_lm2.axes[0].set_ylabel('Standardized Residuals');
+
+# annotations
+abs_norm_resid = np.flip(np.argsort(np.abs(model2_norm_residuals)), 0)
+abs_norm_resid_top_3 = abs_norm_resid[:3]
+
+for r, i in enumerate(abs_norm_resid_top_3):
+    plot_lm2.axes[0].annotate(i,
+                               xy=(np.flip(QQ.theoretical_quantiles, 0)[r],
+                                   model2_norm_residuals[i]));
+plt.show(plot_lm2)
+```
+
+```{python qqplot3, eval=!F, out.width="50%", echo=F}
+from statsmodels.graphics.gofplots import ProbPlot
+
+model3_norm_residuals = model3_fit.get_influence().resid_studentized_internal
+
+QQ = ProbPlot(model3_norm_residuals)
+
+plot_lm3 = QQ.qqplot(line = '45',
+                     alpha = 0.5, 
+                     color = '#4C72B0', 
+                     lw = 1)
+
+plot_lm3.axes[0].set_title('model3: Multiple linear regression (with interaction) - Normal Q-Q')
+plot_lm3.axes[0].set_xlabel('Theoretical Quantiles')
+plot_lm3.axes[0].set_ylabel('Standardized Residuals');
+
+# annotations
+abs_norm_resid = np.flip(np.argsort(np.abs(model3_norm_residuals)), 0)
+abs_norm_resid_top_3 = abs_norm_resid[:3]
+
+for r, i in enumerate(abs_norm_resid_top_3):
+    plot_lm3.axes[0].annotate(i,
+                               xy=(np.flip(QQ.theoretical_quantiles, 0)[r],
+                                   model3_norm_residuals[i]));
+plt.show(plot_lm3)
+```
+
+# Making Predictions
+
+## Using `model1` to predict results for new inputs
+
+```{python}
+X1_new = test_data[{"TV"}]
+X1_new = sm.add_constant(X1_new)
+
+# make the predictions by the model
+test_data["predictions1"] = model1_fit.predict(X1_new) 
+
+test_data
+```
+
+
+## Using `model2` to predict results for new inputs
+
+```{python}
+X2_new = test_data[{"TV","newspaper","radio"}]
+X2_new = sm.add_constant(X2_new)
+
+# make the predictions by the model
+test_data["predictions2"] = model2_fit.predict(X2_new) 
+
+test_data
+```
+
+## Using `model3` to predict results for new inputs
+
+```{python}
+X3_new = test_data[{"TV","radio","rt"}]
+X3_new = sm.add_constant(X3_new)
+
+# make the predictions by the model
+test_data["predictions3"] = model3_fit.predict(X3_new) 
+
+test_data
+```
+
+
+## Predicted Residual Sum of Squares (PRESS)
+
+```{python}
+import pandas as pd
+import numpy as np
+import statsmodels.api as sm
+
+data_url = "http://faculty.marshall.usc.edu/gareth-james/ISL/Advertising.csv"
+
+df = pd.read_csv(data_url,
+                 usecols = {'TV','newspaper','radio','sales'})
+
+# add interaction term
+df2["rt"] = df2["radio"] * df2["TV"]
+
+df.head()
+
+def PRESS(df, y_col, X_cols, add_const = True):
+  y = df[y_col]
+  X = df[X_cols]
+  if add_const: X = sm.add_constant(X)
+  press = 0.0
+
+  for i in range(df.shape[0]):
+    X_d = X.drop(index = i)
+    y_d = y.drop(index = i)
+    mod = sm.OLS(y_d, X_d)
+  
+    mod_fit = mod.fit()
+    X_n = X[X_cols]
+    if add_const: X_n = sm.add_constant(X_n)
+    X_N = X_n.iloc[[i]]
+    
+    y_i_pred = mod_fit.predict(X_N).iloc[0]
+    press = press + (y.iloc[i] - y_i_pred)**2
+    
+  return(press)
+```
+
+
+```{python}
+#simple regression model
+PRESS(df2, y_col="sales", X_cols={"TV"}, add_const=False )
+
+#multiple regression model w/o interaction
+PRESS(df2,y_col="sales", X_cols={"TV","radio"})
+
+#multiple regression model with interaction
+PRESS(df2,y_col="sales", X_cols={"TV","radio","rt"})
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
