@@ -21,9 +21,9 @@ shiny::includeScript("../resources/js/jquery.min.js")
 shiny::includeScript("../resources/js/jkf-scroll.js")
 
 library(knitr)
-library(reticulate)
 library(rprojroot)
-knitr::knit_engines$set(python = reticulate::eng_python)
+library(reticulate)
+reticulate::use_miniconda(condaenv = "r-reticulate")
 knitr::opts_chunk$set(echo = TRUE, message = F, comment = NA, warning = F)
 root = find_root(is_git_root)
 ```
