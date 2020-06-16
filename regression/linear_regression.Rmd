@@ -85,7 +85,7 @@ summary(model1)
 
 ### Assessing Coefficients
 
-Our original formula in Eq. (1) includes $\beta_0$ for our intercept coefficent and $\beta_1$ for our slope coefficient. If we look at our model results (here we use `tidy` to just print out a tidy version of our coefficent results) we see that our model takes the form of
+Our original formula in Eq. (1) includes $\beta_0$ for our intercept coefficient and $\beta_1$ for our slope coefficient. If we look at our model results (here we use `tidy` to just print out a tidy version of our coefficient results) we see that our model takes the form of
 
 $$
 Y = 6.76 + 0.05X + \epsilon \tag{2}
@@ -121,7 +121,7 @@ $$
 t=\frac{\beta_1 - 0}{SE(\beta_1)}  \tag{5}
 $$
 
-which measures the number of standard deviations that $\beta_1$ is away from 0.  Thus a large *t-statistic* such as ours will produe a small *p-value* (a small p-value indicates that it is unlikely to observe such a substantial association between the predictor variable and the response due to chance).  Thus, we can conclude that a relationship between TV advertising budget and sales exists.
+which measures the number of standard deviations that $\beta_1$ is away from 0.  Thus a large *t-statistic* such as ours will produce a small *p-value* (a small p-value indicates that it is unlikely to observe such a substantial association between the predictor variable and the response due to chance).  Thus, we can conclude that a relationship between TV advertising budget and sales exists.
 
 ### Assessing Model Accuracy
 
@@ -233,7 +233,7 @@ qq_plot <- qqline(model1_results$.resid)
 
 Last are the Cook's Distance and residuals versus leverage plot.  These plot helps us to find influential cases (i.e., subjects) if any. Not all outliers are influential in linear regression analysis. Even though data have extreme values, they might not be influential to determine a regression line. That means, the results wouldn't be much different if we either include or exclude them from analysis. They follow the trend in the majority of cases and they don't really matter; they are not influential. On the other hand, some cases could be very influential even if they look to be within a reasonable range of the values. They could be extreme cases against a regression line and can alter the results if we exclude them from analysis. Another way to put it is that they don't get along with the trend in the majority of the cases.
 
-Here we are looking for outlying values (we can select the top *n* outliers to report with `id.n`.  The identified (labeled) points represent those splots where cases can be influential against a regression line. When cases have high Cook's distance scores and are to the upper or lower right of our leverage plot they have *leverage* meaning they are influential to the regression results. The regression results will be altered if we exclude those cases.  
+Here we are looking for outlying values (we can select the top *n* outliers to report with `id.n`.  The identified (labeled) points represent those plots where cases can be influential against a regression line. When cases have high Cook's distance scores and are to the upper or lower right of our leverage plot they have *leverage* meaning they are influential to the regression results. The regression results will be altered if we exclude those cases.  
 
 ```{r}
 par(mfrow=c(1, 2))
@@ -316,7 +316,7 @@ summary(model2)
 
 ### Assessing Coefficients
 
-The interpretation of our coefficients is the same as in a simple linear regression model.  First, we see that our coefficients for TV and Radio advertising budget are statistically significant (p-value < 0.05) while the coefficient for Newspaper is not.  Thus, changes in Newspaper budget do not appear to have a relationship with changes in sales.  However, for TV our coefficent suggests that for every $1,000 increase in TV advertising budget, *holding all other predictors constant*, we can expect an increase of 47 sales units, on average (this is similar to what we found in the simple linear regression).  The Radio coefficient suggests that for every $1,000 increase in Radio advertising budget, *holding all other predictors constant*, we can expect an increase of 196 sales units, on average.
+The interpretation of our coefficients is the same as in a simple linear regression model.  First, we see that our coefficients for TV and Radio advertising budget are statistically significant (p-value < 0.05) while the coefficient for Newspaper is not.  Thus, changes in Newspaper budget do not appear to have a relationship with changes in sales.  However, for TV our coefficient suggests that for every $1,000$ increase in TV advertising budget, *holding all other predictors constant*, we can expect an increase of 47 sales units, on average (this is similar to what we found in the simple linear regression).  The Radio coefficient suggests that for every $1,000 increase in Radio advertising budget, *holding all other predictors constant*, we can expect an increase of 196 sales units, on average.
 
 ```{r}
 tidy(model2)
