@@ -1,0 +1,344 @@
+---
+output: html_document
+---
+
+## Multiple Regression {#multi}
+
+Simple linear regression is a useful approach for predicting a response on the basis of a single predictor variable. However, in practice we often have more than one predictor. For example, in the Advertising data, we have examined the relationship between sales and TV advertising. We also have data for the amount of money spent advertising on the radio and in newspapers, and we may want to know whether either of these two media is associated with sales. How can we extend our analysis of the advertising data in order to accommodate these two additional predictors?
+
+We can extend the simple linear regression model so that it can directly accommodate multiple predictors. We can do this by giving each predictor a separate slope coefficient in a single model. In general, suppose that we have *p* distinct predictors. Then the multiple linear regression model takes the form
+
+$$
+Y = \beta_0 + \beta_1X_1 + \beta_1X_2 + \cdots + \beta_pX_p + \epsilon \tag{10}
+$$
+
+where $X_j$ represents the *j*th predictor and $\beta_j$ quantifies the association between that variable and the response. We interpret $\beta_j$ as the average effect on $Y$ of a one unit increase in $X_j$, holding all other predictors fixed.
+
+### Model Building
+
+If we want to run a model that uses TV, Radio, and Newspaper to predict Sales then we build this model in R using a similar approach introduced in the Simple Linear Regression tutorial.
+
+```{r}
+model2 <- lm(sales ~ TV + radio + newspaper, data = train)
+```
+
+We can also assess this model as before:
+
+```{r}
+summary(model2)
+```
+
+### Assessing Coefficients
+
+The interpretation of our coefficients is the same as in a simple linear regression model.  First, we see that our coefficients for TV and Radio advertising budget are statistically significant (p-value < 0.05) while the coefficient for Newspaper is not.  Thus, changes in Newspaper budget do not appear to have a relationship with changes in sales.  However, for TV our coefficient suggests that for every $1,000$ increase in TV advertising budget, *holding all other predictors constant*, we can expect an increase of 47 sales units, on average (this is similar to what we found in the simple linear regression).  The Radio coefficient suggests that for every $1,000 increase in Radio advertising budget, *holding all other predictors constant*, we can expect an increase of 196 sales units, on average.
+
+```{r}
+tidy(model2)
+```
+
+We can also get our confidence intervals around these coefficient estimates as we did before.  Here we see how the confidence interval for Newspaper includes 0 which suggests that we cannot assume the coefficient estimate of -0.0106 is different than 0.
+
+```{r}
+confint(model2)
+```
+
+### Assessing Model Accuracy
+
+Assessing model accuracy is very similar as when assessing simple linear regression models.  Rather than repeat the discussion, here I will highlight a few key considerations. First, multiple regression is when the F-statistic becomes more important as this statistic is testing to see if *at least one of the coefficients is non-zero*. When there is no relationship between the response and predictors, we expect the F-statistic to take on a value close to 1. On the other hand, if at least predictor has a relationship then we expect $F > 1$. In our summary print out above for model 2 we saw that $F = 445.9$ with $p < 0.05$ suggesting that at least one of the advertising media must be related to sales. 
+
+In addition, if we compare the results from our simple linear regression model (`model1`) and our multiple regression model (`model2`) we can make some important comparisons:
+
+```{r}
+list(model1 = broom::glance(model1), model2 = broom::glance(model2))
+```
+
+1. **$R^2$**: Model 2's $R^2=.92$ is substantially higher than model 1 suggesting that model 2 does a better job explaining the variance in sales. It's also important to consider the *adjusted* $R^2$.  The *adjusted* $R^2$ is a modified version of $R^2$ that has been adjusted for the number of predictors in the model. The *adjusted* $R^2$ increases only if the new term improves the model more than would be expected by chance. Thus, since model 2's *adjusted* $R^2$ is also substantially higher than model 1 we confirm that the additional predictors are improving the model's performance.
+2. **RSE**: Model 2's RSE (`sigma`) is lower than model 1.  This shows that model 2 reduces the variance of our $\epsilon$ parameter which corroborates our conclusion that model 2 does a better job modeling sales.
+3. **F-statistic**: the F-statistic (`statistic`) in model 2 is larger than model 1.  Here larger is better and suggests that model 2 provides a better "goodness-of-fit".
+4. **Other**: We can also use other various statistics to compare the quality of our models. These include Akaike information criterion (AIC) and Bayesian information criterion (BIC), which we see in our results, among others.  We'll go into more details regarding these statistics in the *Linear Model Selection* tutorial but for now just know that models with lower AIC and BIC values are considered of better quality than models with higher values.
+
+So we understand that quantitative attributes of our second model suggest it is a better fit, how about visually?
+
+### Assessing Our Model Visually
+
+Our main focus is to assess and compare residual behavior with our models.  First, if we compare model 2's residuals versus fitted values we see that model 2 has reduced concerns with heteroskedasticity; however, we now have discernible patter suggesting concerns of linearity.  We'll see one way to address this in the next section.
+
+```{r}
+# add model diagnostics to our training data
+model1_results <- model1_results %>%
+  mutate(Model = "Model 1")
+
+model2_results <- augment(model2, train) %>%
+  mutate(Model = "Model 2") %>%
+  rbind(model1_results)
+
+ggplot(model2_results, aes(.fitted, .resid)) +
+  geom_ref_line(h = 0) +
+  geom_point() +
+  geom_smooth(se = FALSE) +
+  facet_wrap(~ Model) +
+  ggtitle("Residuals vs Fitted")
+```
+
+This concern with normality is supported when we compare the Q-Q plots.  So although our model is performing better numerically, we now have a greater concern with normality then we did before!  This is why we must always assess models numerically *and* visually!
+
+
+```{r}
+par(mfrow=c(1, 2))
+
+# Left: model 1
+qqnorm(model1_results$.resid); qqline(model1_results$.resid)
+
+# Right: model 2
+qqnorm(model2_results$.resid); qqline(model2_results$.resid)
+```
+
+### Making Predictions
+
+To see how our models compare when making predictions on an out-of-sample data set we'll compare MSE.  Here we can use `gather_predictions` to predict on our test data with both models and then, as before, compute the MSE.  Here we see that model 2 drastically reduces MSE on the out-of-sample.  So although we still have lingering concerns over residual normality model 2 is still the preferred model so far.
+
+```{r}
+test %>%
+  gather_predictions(model1, model2) %>%
+  group_by(model) %>%
+  summarise(MSE = mean((sales-pred)^2))
+```
+
+<a href="#top">Go to top</a>
+
+## Incorporating Interactions {#interactions}
+
+In our previous analysis of the Advertising data, we concluded that both TV and radio seem to be associated with sales. The linear models that formed the basis for this conclusion assumed that the effect on sales of increasing one advertising medium is independent of the amount spent on the other media. For example, the linear model (Eq. 10) states that the average effect on sales of a one-unit increase in TV is always $\beta_1$, regardless of the amount spent on radio.
+
+However, this simple model may be incorrect. Suppose that spending money on radio advertising actually increases the effectiveness of TV advertising, so that the slope term for TV should increase as radio increases. In this situation, given a fixed budget of $100,000, spending half on radio and half on TV may increase sales more than allocating the entire amount to either TV or to radio. In marketing, this is known as a *synergy* effect, and in statistics it is referred to as an *interaction* effect.  One way of extending our model 2 to allow for interaction effects is to include a third predictor, called an *interaction term*, which is constructed by computing the product of $X_1$ and $X_2$ (here we'll drop the Newspaper variable). This results in the model
+
+$$
+Y = \beta_0 + \beta_1X_1 + \beta_2X_2 + \beta_3X_1X_2 + \epsilon \tag{11}
+$$
+
+Now the effect of $X_1$ on $Y$ is no longer constant as adjusting $X_2$ will change the impact of $X_1$ on $Y$.  We can interpret $\beta_3$ as the increase in the effectiveness of TV advertising for a one unit increase in radio advertising (or vice-versa).  To perform this in R we can use either of the following.  Note that option B is a shorthand version as when you create the interaction effect with `*`, R will automatically retain the *main effects*.
+
+```{r}
+# option A
+model3 <- lm(sales ~ TV + radio + TV * radio, data = train)
+
+# option B
+model3 <- lm(sales ~ TV * radio, data = train)
+```
+
+### Assessing Coefficients
+
+We see that all our coefficients are statistically significant.  Now we can interpret this as an increase in TV advertising of \$1,000 is associated with increased sales of $(\beta_1+\beta_3\times \text{Radio}) \times 1000 = 21 + 1 \times \text{Radio}$.  And an increase in Radio advertising of \$1,000 will be associated with an increase in sales of $(\beta_2+\beta_3\times \text{TV}) \times 1000 = 21 + 1 \times \text{TV}$.
+
+```{r}
+tidy(model3)
+```
+
+### Assessing Model Accuracy
+
+We can compare our model results across all three models. We see that our *adjusted* $R^2$ and F-statistic are highest with model 3 and our RSE, AIC, and BIC are the lowest with model 3; all suggesting the model 3 out performs the other models.
+
+```{r}
+list(model1 = broom::glance(model1), 
+     model2 = broom::glance(model2),
+     model3 = broom::glance(model3))
+```
+
+### Assessing Our Model Visually
+
+Visually assessing our residuals versus fitted values we see that model three does a better job with constant variance and, with the exception of the far left side, does not have any major signs of non-normality.  
+
+```{r}
+# add model diagnostics to our training data
+model3_results <- augment(model3, train) %>%
+  mutate(Model = "Model 3") %>%
+  rbind(model2_results)
+
+ggplot(model3_results, aes(.fitted, .resid)) +
+  geom_ref_line(h = 0) +
+  geom_point() +
+  geom_smooth(se = FALSE) +
+  facet_wrap(~ Model) +
+  ggtitle("Residuals vs Fitted")
+```
+
+As an alternative to the Q-Q plot we can also look at residual histograms for each model.  Here we see that model 3 has a couple large left tail residuals.  These are related to the left tail dip we saw in the above plots.
+
+```{r}
+ggplot(model3_results, aes(.resid)) +
+  geom_histogram(binwidth = .25) +
+  facet_wrap(~ Model, scales = "free_x") +
+  ggtitle("Residual Histogram")
+```
+
+These residuals can be tied back to when our model is trying to predict low levels of sales (< 10,000).  If we remove these sales our residuals are more normally distributed.  What does this mean?  Basically our linear model does a good job predicting sales over 10,000 units based on TV and Radio advertising budgets; however, the performance deteriates when trying to predict sales less than 10,000 because our linear assumption does not hold for this segment of our data.
+
+```{r}
+model3_results %>%
+  filter(sales > 10) %>%
+  ggplot(aes(.resid)) +
+  geom_histogram(binwidth = .25) +
+  facet_wrap(~ Model, scales = "free_x") +
+  ggtitle("Residual Histogram")
+```
+
+
+```{r}
+par(mfrow=c(1, 2))
+
+plot(model3, which = 4, id.n = 5)
+plot(model3, which = 5, id.n = 5)
+```
+
+If we look at these observations we see that they all have low Sales levels.
+
+```{r}
+train[c(3, 5, 47, 65, 94),]
+```
+
+### Making Predictions
+
+Again, to see how our models compare when making predictions on an out-of-sample data set we'll compare the MSEs across all our models. Here we see that model 3 has the lowest out-of-sample MSE, further supporting the case that it is the best model and has not overfit our data.
+
+```{r}
+test %>%
+  gather_predictions(model1, model2, model3) %>%
+  group_by(model) %>%
+  summarise(MSE = mean((sales-pred)^2))
+```
+
+<a href="#top">Go to top</a>
+
+## Additional Considerations {#extra}
+
+### Qualitative Predictors
+
+In our discussion so far, we have assumed that all variables in our linear regression model are *quantitative*. But in practice, this is not necessarily the case; often some predictors are *qualitative*. 
+
+For example, the [Credit](http://www-bcf.usc.edu/~gareth/ISL/Credit.csv) data set records balance (average credit card debt for a number of individuals) as well as several quantitative predictors: age, cards (number of credit cards), education (years of education), income (in thousands of dollars), limit (credit limit), and rating (credit rating). 
+
+Suppose that we wish to investigate differences in credit card balance between males and females, ignoring the other variables for the moment. If a qualitative predictor (also known as a factor) only has two levels, or possible values, then incorporating it into a regression model is very simple. We simply create an indicator or dummy variable that takes on two possible numerical values. For example, based on the gender, we can create a new variable that takes the form
+
+$$
+x_i = \Bigg\{ \genfrac{}{}{0pt}{}{1 \hspace{.5cm}\text{ if }i\text{th person is male}\hspace{.25cm}}{0 \hspace{.5cm}\text{ if }i\text{th person is female}}  \tag{12}
+$$
+
+and use this variable as a predictor in the regression equation. This results in the model
+
+$$
+y_i = \beta_0 + \beta_1x_i + \epsilon_i = \Bigg\{ \genfrac{}{}{0pt}{}{\beta_0 + \beta_1 + \epsilon_i \hspace{.5cm}\text{ if }i\text{th person is male}\hspace{.3cm}}{\beta_0 + \epsilon_i \hspace{1.5cm}\text{ if }i\text{th person is female}}  \tag{13}
+$$
+
+Now $\beta_0$ can be interpreted as the average credit card balance among males, $\beta_0 + \beta_1$ as the average credit card balance among females, and $\beta_1$ as the average difference in credit card balance between females and males.  We can produce this model in R using the same syntax as we saw earlier:
+
+```{r}
+credit <- read_csv("http://faculty.marshall.usc.edu/gareth-james/ISL/Credit.csv")
+model4 <- lm(Balance ~ Gender, data = credit)
+```
+
+The results below suggest that females are estimated to carry $529.54 in credit card debt where males carry $529.54 - $19.73 = $509.81.
+
+```{r}
+tidy(model4)
+```
+
+The decision to code females as 0 and males as 1 in is arbitrary, and has no effect on the regression fit, but does alter the interpretation of the coefficients.  If we want to change the reference variable (the variable coded as 0) we can change the factor levels. 
+
+```{r}
+credit$Gender <- factor(credit$Gender, levels = c("Male", "Female"))
+
+lm(Balance ~ Gender, data = credit) %>% tidy()
+```
+
+A similar process ensues for qualitative predictor categories with more than two levels.  For instance, if we want to assess the impact that ethnicity has on credit balance we can run the following model.  Ethnicity has three levels: *African American, Asian, Caucasian*. We interpret the coefficients much the same way.  In this case we see that the estimated balance for the baseline, African American, is \$531.00. It is estimated that the Asian category will have \$18.69 less debt than the African American category, and that the Caucasian category will have \$12.50 less debt than the African American category. However, the p-values associated with the coefficient estimates for the two dummy variables are very large, suggesting no statistical evidence of a real difference in credit card balance between the ethnicities.
+
+```{r}
+lm(Balance ~ Ethnicity, data = credit) %>% tidy
+```
+
+The process for assessing model accuracy, both numerically and visually, along with making and measuring predictions can follow the same process as outlined for quantitative predictor variables.
+
+### Transformations
+
+Linear regression models assume a linear relationship between the response and predictors. But in some cases, the true relationship between the response and the predictors may be non-linear.  We can accomodate certain non-linear relationships by transforming variables (i.e. `log(x)`, `sqrt(x)`) or using polynomial regression.  
+
+As an example consider the `Auto` data set.  We can see that a linear trend does not fit the relationship between mpg and horsepower.
+
+```{r}
+auto <- ISLR::Auto
+
+ggplot(auto, aes(horsepower, mpg)) +
+  geom_point() +
+  geom_smooth(method = "lm")
+```
+
+We can try to address the non-linear relationship with a quadratic relationship, which takes the form of:
+
+$$
+mpg = \beta_0 + \beta_1 \cdot horsepower + \beta_2 \cdot horsepower^2 + ε \tag{14}
+$$
+
+We can fit this model in R with:
+
+```{r}
+model5 <- lm(mpg ~ horsepower + I(horsepower ^ 2), data = auto)
+
+tidy(model5)
+```
+
+Does this fit our relationship better?  We can visualize it with:
+
+```{r}
+ggplot(auto, aes(horsepower, mpg)) +
+  geom_point() +
+  geom_smooth(method = "lm", formula = y ~ x + I(x^2))
+```
+
+### Correlation of Error Terms
+
+An important assumption of the linear regression model is that the error terms, $\epsilon_1, \epsilon_2,\dots,\epsilon_n$, are uncorrelated. Correlated residuals frequently occur in the context of time series data, which consists of observations for which measurements are obtained at discrete points in time. In many cases, observations that are obtained at adjacent time points will have positively correlated errors.  This will result in biased standard errors and incorrect inference of model results.
+
+To illustrate, we'll create a model that uses the number of unemployed to predict personal consumption expenditures (using the `economics` data frame provided by `ggplot2`).  The assumption is that as more people become unemployed personal consumption is likely to reduce.  However, if we look at our model's residuals we see that adjacent residuals tend to take on similar values. In fact, these residuals have a .998 autocorrelation.  This is a clear violation of our assumption. We'll learn how to deal with correlated residuals in future tutorials.
+
+```{r}
+df <- economics %>% 
+  mutate(observation = 1:n())
+
+model6 <- lm(pce ~ unemploy, data = df)
+
+df %>%
+  add_residuals(model6) %>%
+  ggplot(aes(observation, resid)) +
+  geom_line()
+```
+
+### Collinearity
+
+*Collinearity* refers to the situation in which two or more predictor variables are closely related to one another. The presence of collinearity can pose problems in the regression context, since it can be difficult to separate out the individual effects of collinear variables on the response. In fact, collinearity can cause predictor variables to appear as statistically insignificant when in fact they are significant.  
+
+For example, compares the coefficient estimates obtained from two separate multiple regression models. The first is a regression of balance on age and limit, and the second is a regression of balance on rating and limit. In the first regression, both age and limit are highly significant with very small p- values. In the second, the collinearity between limit and rating has caused the standard error for the limit coefficient estimate to increase by a factor of 12 and the p-value to increase to 0.701. In other words, the importance of the limit variable has been masked due to the presence of collinearity.
+
+```{r}
+model7 <- lm(Balance ~ Age + Limit, data = credit)
+model8 <- lm(Balance ~ Rating + Limit, data = credit)
+
+list(`Model 1` = tidy(model7),
+     `Model 2` = tidy(model8))
+```
+
+A simple way to detect collinearity is to look at the correlation matrix of the predictors. An element of this matrix that is large in absolute value indicates a pair of highly correlated variables, and therefore a collinearity problem in the data. Unfortunately, not all collinearity problems can be detected by inspection of the correlation matrix: it is possible for collinear- ity to exist between three or more variables even if no pair of variables has a particularly high correlation. We call this situation *multicollinearity*.
+
+Instead of inspecting the correlation matrix, a better way to assess multi- collinearity is to compute the *variance inflation factor* (VIF). The VIF is the ratio of the variance of $\hat{\beta}_j$ when fitting the full model divided by the variance of $\hat{\beta}_j$ if fit on its own. The smallest possible value for VIF is 1, which indicates the complete absence of collinearity. Typically in practice there is a small amount of collinearity among the predictors. As a rule of thumb, a VIF value that exceeds 5 or 10 indicates a problematic amount of collinearity. The VIF for each variable can be computed using the formula
+
+$$
+VIF(\hat{\beta}_j) = \frac{1}{1-R^2_{X_j|X_{-j}}} \tag{14}
+$$
+
+
+where $R^2_{X_j \mid X_{-j}}$ is the $R^2$ from a regression of $X_j$ onto all of the other predictors. We can use the `vif` function from the `car` package to compute the VIF.  As we see below model 7 is near the smallest possible VIF value where model 8 has obvious concerns.
+
+```{r}
+car::vif(model7)
+
+car::vif(model8)
+```
