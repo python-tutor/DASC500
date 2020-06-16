@@ -1,0 +1,161 @@
+---
+title: "DASC 500: Introduction to Data Analytics"
+subtitle: "Assignment #4"
+date: "`r format(Sys.Date()+6, '%d %b %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=!FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      message = F, 
+                      comment = NA)
+q=0
+sol <<- TRUE
+library(reticulate)
+```
+
+\pagenumbering{gobble}
+
+__Each of the questions for this assignment involve the `mtcars` data set, which has been provided as part of this assignment in Canvas. For many, `mtcars` is known as a "hello world" data set for students learning linear regression.__
+
+__The data were extracted from the 1974 Motor Trend US magazine, and contains one response variable `mpg` (fuel consumption) and 10 predictor variables that represent different aspects of automobile design and performance for 32 automobiles.__
+
+# Problem `r q=q+1;q`
+
+__Partition the `mtcars` data into a training set and a test set.  Use a 70/30 split wherein 70% of the data is contained in the training set and 30% is contained in the test set.__
+
+__As shown in the multiple linear regression lecture slides you can generate this sample using the `sample()` and `drop()` functions that are included in a `pandas.DataFrame` object.  When using this method you're able to include the argument `random_state` in the call to `sample()`.  By specifying a value for `random_state` you ensure that your random sample is repeatable and if everyone chooses the same value for `random_state` it becomes easier to compare results.  For this assignment you should set `random_state = 42`.  [Why 42?](https://www.independent.co.uk/life-style/history/42-the-answer-to-life-the-universe-and-everything-2205734.html)__
+
+```{block, eval=sol, echo=sol}
+First, let's load the libraries we'll need to complete this assignment
+```
+
+```{python, eval=sol, echo=sol}
+import random
+import numpy as np
+import pandas as pd
+import seaborn as sb
+import matplotlib.pyplot as plt
+import scipy as sp
+import statsmodels.api as sm
+import statistics as st
+import lxml
+```
+
+```{block, eval=sol, echo=sol}
+Next, let's read in the data from the CSV file using `read_csv()` from the `pandas` library
+```
+
+```{python, eval=sol, echo=sol}
+df = pd.read_csv("../regression/mtcars.csv")
+```
+
+```{block, eval=sol, echo=sol}
+With the data read in as an object named `df`, we can now partition the data set into a training set a test set.  As stated above we use the argument `random_state = 42` to ensure that the data in my training data is the same as yours.  Rather than printing out all of the observations in `train_data`, I use `head()` and `tail()` to show the first and last 6 rows of the data. 
+```
+
+```{python, eval=sol, echo=sol}
+train_data = df.sample(frac = 0.7, random_state = 42)
+test_data = df.drop(index = train_data.index)
+
+train_data.head()
+
+train_data.tail()
+```
+
+# Problem `r q=q+1;q`
+
+__Suppose you were asked to build a linear regression model but were only allowed to use a single predictor.  Build 10 different simple linear models where `mpg` is the response variable and the predictor variable is one of the other 10 variables.__
+
+__Your answer to this problem should include a table containing the following columns:__
+
+- __Predictor: The name of the predictor__
+- __beta_1: The value of the $\beta_1$ parameter for each model__
+- __t-stat: The value of the t_statistic__
+- __$\underline{\beta_1}$: The lower limit of the confidence interval for $\beta_1$__
+- __$\overline{\beta_1}$: The upper limit of the confidence interval for $\beta_1$__
+
+```{block, eval=sol, echo=sol}
+For this question we're asked to evaluate 10 different simple linear regression models, build a table containing the specified results from each model and then choose a model, from the 10, that you believe to be the best at describing the uncertainty in the `mpg` responses.
+
+First, let's create a `DataFrame` to contain the results from each of the models.  Note that I use `zeros()` from `numpy` to create an object with 6 columns and 11 rows.  The reason my `DataFrame` has 11 rows is because I will also include the model in which `mpg` is regressed against itself.
+```
+
+```{python, eval=sol, echo=sol}
+result_df = pd.DataFrame(data = np.zeros([len(df.columns),6]),
+                         index = df.columns,
+                         columns = ["coef",  "std err", "t", "P>|t|", "[0.025", "0.975]"])
+```
+
+```{block, eval=sol, echo=sol}
+With the `DataFrame` create the loop defined below can be used to fill each row with the results obtained from each model.
+```
+
+```{python, eval=sol, echo=sol}
+for i in range(len(df.columns)):
+
+  y  = train_data["mpg"]
+  X1 = train_data[{result_df.index[i]}]
+  X1 = sm.add_constant(X1)
+  model = sm.OLS(y, X1)
+  model_fit = model.fit()
+  
+  # create HTML table from model_fit.summary()
+  # note that this requires that the lxml library is installed
+  out = pd.read_html(model_fit.summary().tables[1].as_html(),header=0,index_col=0)[0]
+  
+  # Now store the output from the object out
+  # as the ith row of the object result_df
+  result_df[i:] = out[df.columns[i]:]
+
+```
+
+```{r, echo=FALSE, eval=sol}
+knitr::kable(py$result_df)
+```
+
+# Problem `r q=q+1;q`
+
+__Consider the results you obtained in Problem #`r q-1`.  If you're only allowed to use a single predictor - which one would you choose? There is no one right answer to this question, I'm just looking for your reasoning behind choosing one model over the others.__
+
+```{block, eval=sol, echo=sol}
+Based on the results shown in the table in the previous question I would choose the regression model in which the predictor was `wt`.  I chose this predictor as the model results indicate that the weight of the car has the greatest combination of a large $\beta_1$ coefficient (albeit negative) and a small t-statistic  
+```
+
+# Problem `r q=q+1;q`
+
+__Consider the model you chose in Problem # `r q-1`.  How would you explain what this model is saying?__
+
+```{block, eval=sol, echo=sol}
+The model is saying that every unit increase in a car's weight (pounds, kilograms, tons, etc.) results in a -4.8949 change in the car's fuel efficiency (measured in miles per gallon).
+```
+
+# Problem `r q=q+1;q`
+
+__Now build and fit a single model that includes all 10 predictors.  Show a summary of results from this model.__
+
+```{python, eval=sol, echo=sol}
+# select mpg as the output (response)
+y  = train_data["mpg"]
+
+# select all the other columns as inputs (predictors)
+# Note that the column names must be converted to an array
+X1 = train_data[df.columns[1:].array]
+X1 = sm.add_constant(X1)
+model = sm.OLS(y, X1)
+model_fit = model.fit()
+
+out = pd.read_html(model_fit.summary().tables[1].as_html(),header=0,index_col=0)[0]
+```
+
+```{r, eval=sol, echo=FALSE}
+knitr::kable(py$out)
+```
+
+# Problem `r q=q+1;q`
+
+__Compare the results you obtained in Problem #`r q-1` to those you obtained in Problem #1.  Do these results of the larger model align with those seen in the 10 individual models? If not, comment on why you think this is the case.__
+
+```{block, eval=sol, echo=sol}
+No the results are not the same.  This is mainly due the `OLS` algorithm attempting to fit model to each predictor in the presence of the other predictors.  Note that in the results table obtained from the multiple linear regression model the coefficient for `cyl` has changed signs. 
+```
