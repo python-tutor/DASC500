@@ -3,7 +3,7 @@ title: "Review of Descriptive Statistics with Applications in Python"
 date: "`r format(Sys.Date(), '%d %B %Y')`"
 output: 
   powerpoint_presentation:
-    reference_doc: "template.pptx"
+    reference_doc: "../resources/powerpoint/template.pptx"
     fig_caption: yes
 ---
 
@@ -483,7 +483,7 @@ $$
 - The population covariance is computed as
 
 $$
-\sigma_{XY} = \frac{\sum_{i=1}^N(x_i - \mu_x)(y_i - \mu_y)}{N-1}
+\sigma_{XY} = \frac{\sum_{i=1}^N(x_i - \mu_x)(y_i - \mu_y)}{N}
 $$
 
 # Covariance
