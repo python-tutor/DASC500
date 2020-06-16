@@ -1,0 +1,295 @@
+---
+title: "DASC 500: Introduction to Data Analytics"
+subtitle: "Assignment #3"
+date: "`r format(Sys.Date(), '%d %b %Y')`"
+output: pdf_document
+---
+
+```{r setup, include=!FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+q=0
+sol <<- TRUE
+connect <<- !T
+library(reticulate)
+#reticulate::use_miniconda(condaenv = "r-reticulate")
+```
+
+\pagenumbering{gobble}
+
+Each of the questions below involve the `advertising` data set.  The data set has been provided as part of this assignment in Canvas and may also be accessed by clicking [**this link**](http://faculty.marshall.usc.edu/gareth-james/ISL/Advertising.csv).
+
+# Problem `r q=q+1;q`
+
+__Focusing on the `newspaper` column, show how you would generate a random sample of size $N$ - where $N \in \mathbb{I}_{1,200}$ ($N$ is any positive integer between 1 and 200).__
+
+__If you use Python, your answer should include the code used to generate the sample, if you use Excel provide a list of the commands used to generate the sample.__
+
+`r if(!sol) cat("<!--")`
+Using Python, we generate a random sample by first importing the necessary libraries and the `advertising` data set.
+
+```{python, eval=sol, echo=sol}
+import random
+import numpy as np
+import pandas as pd
+import seaborn as sb
+import matplotlib.pyplot as plt
+import scipy as sp
+import statsmodels.api as sm
+import statistics as st
+```
+
+```{python, eval=sol&&connect, echo=sol}
+data_url = "http://faculty.marshall.usc.edu/gareth-james/ISL/Advertising.csv"
+```
+
+```{r, echo=FALSE, eval=sol}
+data_url = `if`("data_url" %in% names(py),
+                py$data_url,
+                "advertising.csv")
+```
+
+```{python, eval=sol, echo=sol}
+data_url = r.data_url
+```
+
+```{python, eval=sol, echo=sol}
+df2 = pd.read_csv(data_url, 
+                  usecols = { "sales","TV","radio","newspaper" })
+```
+
+With the data imported we can use the function below, called `samp()` to generate a random sample of size $N$
+
+```{python, eval=sol, echo=sol}
+# define function to extract the sample
+def samp(df, N):
+  
+  rows = random.sample(range(df2.shape[0]), N)
+  samp = df2.iloc[rows]
+
+  return(samp)
+```
+
+This question was included to demonstrate the importance (and challenge) of ensuring reproducibility in your work.  It's important to ensure that, if required, someone can verify the methods you used to produce one or more results.  Those of you who used Excel saw this is made more challenging when using GUI-based software where you have to type out every step.  When you use command line tools reproducibility is much easier in that you just have to provide the commands used.    
+`r if(!sol) cat("-->")`
+
+# Problem `r q=q+1;q`
+
+__Use the method described in Exercise `r q-1` to generate a sample of size $N = 30$ - provide a histogram of the observations.__
+
+`r if(!sol) cat("<!--")`
+
+With the function `samp()` defined, we now use it to generate the random sample and store it as an object named `out`
+
+```{python, eval=sol, echo=sol}
+# use the function for N = 5
+out = samp(df = df2, N = 30)
+```
+
+Then, we use the `distplot()` function from the `seaborn` library to produce the histogram plot.
+
+```{python, eval=sol, echo=sol}
+plot = sb.distplot(out["newspaper"], 
+                   bins = int(out.shape[0]),
+                   kde = False)
+
+plt.show(plot)
+```
+`r if(!sol) cat("-->")`
+
+# Problem `r q=q+1;q`
+
+__Compute the mean and variance of the sample you generated "by hand" (i.e. type up the formulae used to compute these values yourself in the software tool of choice).  Then, use an implicit function to compute these values.__
+
+__This question is essentially asking you to compute the mean and variance yourself and then compare your values to those that are returned by the native Python/Excel function that has been provided to compute these for you.__
+
+__The results should essentially be the same plus/minus some rounding error. If this is not the case can you suggest a reason why?__
+
+`r if(!sol) cat("<!--")`
+The code in the chunk below computes the mean of the `newspaper` column from our random sample and then compares this value to the mean computed using the `numpy` and `statistics` modules.  The results show that all three return the same value for the mean. 
+
+```{python, eval=sol, echo=sol}
+my_mean = (1/out.shape[0]) * sum(out["newspaper"])
+np_mean = np.mean(out["newspaper"])
+st_mean = st.mean(out["newspaper"])
+
+print("my mean    = "+str(my_mean))
+print("numpy mean = "+str(np_mean))
+print("stats mean = "+str(st_mean))
+```
+
+The code in the chunk below computes the variance of the `newspaper` column from our random sample and then compares this value to the variance computed using the `numpy` and `statistics` modules.  The results show that all three do not return the same value for the variance. We see that the variance that was computed by hand is the same as the value returned by the `statistics` library as both assume that the adjusted sample variance is desired.  By contrast the `numpy` implementation assumes that the un-adjusted sample variance is desired
+
+```{python, eval=sol, echo=sol}
+my_var = 1/(out.shape[0] - 1) * np.sum((out["newspaper"] - np.mean(out["newspaper"]))**2)
+np_var = np.var(out["newspaper"])
+st_var = st.variance(out["newspaper"])
+
+print("my variance    = "+str(my_var))
+print("numpy variance = "+str(np_var))
+print("stats variance = "+str(st_var))
+```
+`r if(!sol) cat("-->")`
+
+# Problem `r q=q+1;q`
+
+__Using the values you computed in Exercise `r q-1` construct a $95\%$ confidence interval for the mean $\mu$ based on the sample you generated.__ 
+
+__Because the sample you generated contains 30 observations, we can invoke the Central Limit Theorem.__
+
+`r if(!sol) cat("<!--")`
+The desired confidence interval is computed using the code in the chunk below
+
+```{python, eval=sol, echo=sol}
+# import the normal module from scipy
+from scipy.stats import norm
+
+# Set the alpha level
+alpha = 0.05
+
+# Find the sample standard deviation
+my_std = np.sqrt(my_var)
+
+# Find z value at alpha / 2
+z = norm.ppf(1 - alpha / 2, loc = 0, scale = 1)
+
+# compute and print the confidence limits
+mu_l = my_mean - z * my_std / np.sqrt(len(out))
+mu_h = my_mean + z * my_std / np.sqrt(len(out))
+
+mu_l, my_mean, mu_h
+```
+`r if(!sol) cat("-->")`
+
+\newpage
+
+# Problem `r q=q+1;q`
+
+__Suppose that we knew that the true value of the mean $\mu_0=30.55$, perform a $0.05$-level hypothesis where__
+
+$$
+\begin{aligned}
+H_O: \mu=\mu_0\\\\
+H_A: \mu\ne\mu_0.
+\end{aligned}
+$$
+
+__Based on the sample you generated what conclusion do you reach? Be sure to include the value of your test statistic $W$ in your answer.__
+
+```{python, eval=sol, echo=sol}
+alpha = 0.05
+mu_0 = 31.55
+
+W = (my_mean - mu_0) / (my_std) / np.sqrt(out.shape[0])
+
+z = norm.ppf(alpha / 2, loc = 0, scale = 1)
+
+W ; z ; abs(W) <= z
+```
+
+# Problem `r q=q+1;q`
+
+__Repeat the steps performed in Exercises `r q-4`-`r q-1` three times, that is__
+
+- __Generate three random samples where $N=30$__
+- __Compute the means and variances of the sample__
+- __Construct a $95\%$ confidence interval on the mean $\mu$ for each sample__
+- __Perform a $0.05$-level hypothesis where $H_O: \mu=\mu_0$ and $H_A: \mu\ne\mu_0$ for each sample__
+
+__For each of the three iterations provide the following results:__
+
+- __The value of the sample mean $\bar{X}_n = \hat{\mu}$__
+- __The value of the adjusted sample variance $s^2 = \hat{\sigma}$__
+- __The upper and lower limits of the $95\%$ confidence interval__
+- __The value of the test statistic $W$__
+
+`r if(!sol) cat("<!--")`
+Whenever you need to repeat a process - that's a clear indication that you should write a function! Below I create an example function, called `sampler()` that can be used to repeat the process described in the previous problems.  To use this function we need to paste it into our Python console to define it and make it available for use.
+
+Note that when defining a function in Python every line after the colon must be indented. Python is one of several languages where white space is important. The way that knows where the function ends is by finding the line where you stop indenting.
+
+```{python, eval=sol, echo=sol}
+def sampler(df, colname,N, alpha, mu_0):
+
+  rows = random.sample(range(df.shape[0]), N)
+  samp = df.iloc[rows]
+  
+  col = samp[colname]
+  
+  my_mean = (1/len(col)) * sum(col)
+  my_var = 1/(len(col) - 1) * np.sum((col - np.mean(col))**2)
+  my_std = np.sqrt(my_var)
+  
+  # Find z value at alpha / 2
+  z = norm.ppf(1-alpha / 2, loc = 0, scale = 1)
+  
+  mu_l, mu_h = my_mean - z * my_std / np.sqrt(len(col)), my_mean + z * my_std / np.sqrt(len(col))
+  
+  W = (my_mean - mu_0) / (my_std) / np.sqrt(len(col))
+  
+  Test = abs(W) <= z
+  
+  out = dict({"mean": my_mean, 
+              "var": my_var,
+              "std_dev":my_std,
+              "mu_low": mu_l,
+              "mu_high": mu_h,
+              "Test stat": W,
+              "Reject H_O": Test})
+
+  return(out)
+```
+
+With the function defined, we need only run the function three times and display the results for each run.
+
+```{python, eval=sol, echo=sol}
+res1 = sampler(df = df2,colname="newspaper",N = 30, alpha = 0.05, mu_0= 31.55)
+res2 = sampler(df = df2,colname="newspaper",N = 30, alpha = 0.05, mu_0= 31.55)
+res3 = sampler(df = df2,colname="newspaper",N = 30, alpha = 0.05, mu_0= 31.55)
+```
+
+```{r, eval=sol, echo=FALSE}
+Res1 = unlist(py$res1)
+Res2 = unlist(py$res2)
+Res3 = unlist(py$res3)
+
+df_r <- data.frame(Res1,Res2,Res3)
+
+knitr::kable(t(df_r))
+```
+`r if(!sol) cat("-->")`
+
+# Problem `r q=q+1;q`
+
+__Repeat the steps performed in the Exercise `r q-1` three times, but this time set $N=100$__
+
+`r if(!sol) cat("<!--")`
+For this problem we can simply use the `sampler()` function again, noting that we need to change the value of the argument $N$ to 100. This is shown below along with the results.
+
+```{python, eval=sol, echo=sol}
+res1b = sampler(df = df2,colname="newspaper",N = 100, alpha = 0.05, mu_0= 31.55)
+res2b = sampler(df = df2,colname="newspaper",N = 100, alpha = 0.05, mu_0= 31.55)
+res3b = sampler(df = df2,colname="newspaper",N = 100, alpha = 0.05, mu_0= 31.55)
+```
+
+```{r, eval=sol, echo=FALSE}
+Res1b = unlist(py$res1b)
+Res2b = unlist(py$res2b)
+Res3b = unlist(py$res3b)
+
+df_r <- data.frame(Res1b,Res2b,Res3b)
+
+knitr::kable(t(df_r))
+```
+`r if(!sol) cat("-->")`
+
+# Problem `r q=q+1;q`
+
+__What are your observations based on the results from Exercises `r q-2` and `r q-1`?__
+
+`r if(!sol) cat("<!--")`
+Observing the values produced in Problem 6 and those produced in Problem 7 we see that much more consistent results were produced when the sample size is larger.  Specifically, we see that the value of the mean and upper and lower limits of the confidence intervals fluctuated a lot when $N=30$ but were more consistent when $N=100$.
+`r if(!sol) cat("-->")`
+
+
+`r if(!sol) cat("<!--")`
+`r if(!sol) cat("-->")`
