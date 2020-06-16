@@ -11,10 +11,21 @@ output:
 graphics: yes
 ---
 
-# Overview of Statistical Machine Learning Algorithms 
+# Overview
+
+<style>
+div.plotly.html-widget {width: 800px;
+                   height: 800px;
+                   margin-left:auto;
+                   margin-right:auto;}
+</style>
 
 ```{r setup, echo=FALSE}
-knitr::opts_chunk$set(echo = FALSE, fig.align = 'center')
+knitr::opts_chunk$set(echo = FALSE, 
+                      fig.align = 'center',
+                      message = F,
+                      warning = F)
+
 shiny::includeCSS("../resources/css/flatly-style.css")
 shiny::includeCSS("../resources/css/r-title.css")
 shiny::includeScript("../resources/js/jquery.min.js")
@@ -28,19 +39,29 @@ knitr::opts_chunk$set(echo = TRUE, message = F, comment = NA, warning = F)
 root = find_root(is_git_root)
 ```
 
-## Applied Review
+```{python, echo=F}
+import warnings
+warnings.filterwarnings("ignore")
+```
 
-- `scikit-learn` (abbreviated in Python as `sklearn`) is the general machine learning package in Python's Data Science Ecosystem
+## Supervised Vs Unsupervised Learning Algorithms
 
-- Python has a lot of other statistics-oriented packages to meet various data science needs, including `scipy` and `statsmodels`
+- You may have heard one or more of the following terms 
 
-- Machine Learning Overview
+    + Modeling
+    + Predictive analytics
+    + Data mining
+    + Artificial intelligence
+    + etc. 
 
-- scikit-learn is a package for machine learning
+- Machine learning is a catch-all term for these things
 
-- You may hear this called modeling, predictive analytics, data mining, artificial intelligence, etc. But machine learning is a catch-all term for these things
+- Despite being broad, most machine learning algorithms fit into two categories
 
-- Despite being broad, most machine learning methodologies and problems fit into two categories: supervised learning and unsupervised learning
+    + Supervised learning algorithms
+    + Unsupervised learning algorithms
+
+## Linear regression w/ Python
 
 ## Supervised vs Unsupervised Learning Algorithms
 
@@ -59,13 +80,13 @@ root = find_root(is_git_root)
 
 ## So, when would an unsupervised learning algorithm be used?
 
-- <focus>Clustering</focus> Used to split a data set into groups according to similarity
+- You might use a <focus>clustering</focus> algorithm to split a data set into groups according to similarity
  
-- <focus>Anomaly detection</focus> Discover unusual observations in your dataset (i.e. fraudulent transactions or discovering faulty pieces of hardware)
+- You could use an <focus>anomaly detection</focus> algorithm to discover unusual observations in your dataset (i.e. fraudulent transactions or discovering faulty pieces of hardware)
 
-- <focus>Association mining</focus> Identify sets of items that frequently occur together in your dataset (i.e. basket analysis and targeted marketing) 
+- An <focus>association mining</focus> algorithm could be used to  identify sets of items that frequently occur together in your dataset (i.e. basket analysis and targeted marketing) 
 
-- <focus>Latent variable models</focus> Used for data preprocessing (i.e. reducing the number of features in a data set or decomposing the data into multiple components)
+- Finally, <focus>latent variable</focus> algorithms are often used for data preprocessing (i.e. reducing the number of features in a data set or decomposing the data into multiple components)
 
 # Supervised learning algorithms can be divided into two main classes
 
@@ -198,24 +219,39 @@ ggplot(df, aes(x,y)) +
     + So far, nothing - but let's fix that
     + Let's have the machine determine the parameter values that result in the best representation of the relationship between `x` and `y` constraining this relationship the form of $f_{\text{imperfect}}$ that we chose above
     + Finding the best requires the use of optimization methods
-    + But before we can do any optimization we first need to answer the question <font color="red"><b>what exactly are we optimizing?</b></font>.  The answer is a <u>loss function (aka cost function)</u>. 
-    + If you're wondering: What is a loss function and how do I know which one to use? keep reading
+    + But before we can do any optimization we first need to answer the question <font color="red"><b>what exactly are we optimizing?</b></font> - the answer is a <u>loss function (aka cost function)</u>. 
 
 ## Elements of supervised learning algorithms: #4 loss functions
 
-- To do this we need to a way to differentiate between good parameter values and bad parameter values
-
-- This is done by using what are called <focus>loss function</focus>
+- A <focus>loss function</focus> helps the machine differentiate between good parameter values and bad parameter values
 
 - Loss functions are a key component in all supervised learning algorithms
 
 - In many cases, you don't have to choose a loss function you use to find the optimal parameter values 
  
-- Rather, it comes as part of a package deal with the modeling approach you choose (i.e. linear regression, logistic regression, etc.).  
+    + Rather, it comes as part of a package deal with the modeling approach you choose (i.e. linear regression, logistic regression, etc.).
 
-- You can, however, come up with your own loss function - so long as it produces meaningful results
+    + You can, however, come up with your own loss function - so long as it produces meaningful results
 
-- For this example data, we can express a <u>naive</u> loss function as the difference between the observed output and the output returned by the proposed model
+# Supervised Learning Example (Cont.)
+
+## Visualizing loss functions
+
+- For our perfect example data, we can choose among several different loss functions
+
+- However, not all of them will return an accurate solution
+
+- In the sections below I walk through the choice of several different loss functions and plot the results
+
+    + A <u>naive</u> loss function as the difference between the observed output and the output returned by the proposed model
+    + A good loss function
+    + A better loss function
+
+## A Naive loss function
+
+- In this case we use a <u>naive</u> loss function that represents the difference between the observed output and the output returned by the proposed model
+
+- The loss function is expressed as shown below
 
 $$
 Loss_{_{naive}}(\mathbf{y},\mathbf{x},m,b) = \sum_{i=1}^N y_i-m\times x_i-b.
@@ -229,12 +265,167 @@ $$
 
 - Thus far, we've chosen a functional form that we believe is a good representation of the data -- and a corresponding loss function
 
-- Now, let's use SciPy's `minimize()` function to find the values of of $m$ and $b$ minimize the loss function and results in a model that best-fits the data  
-
-Our optimization is carried out in the code chunk below.
+- In the chunk below we define our naive loss function 
 
 ```{python naive_loss}
 def naive_loss(params, x,y):
+
+  if len(params) != 2: sys.exit("Need 2 parameters -- dummy!") 
+
+  m = params[0]
+  b = params[1]
+
+  loss = 0
+
+  for i in range(len(y)):
+    loss = loss + (y[i] - m * x[i] - b)
+
+  return(loss)
+```
+
+- Now, let's use SciPy's `minimize()` function to find the values of $m$ and $b$ minimize the loss function and results in a model that best-fits the data  
+
+```{python}
+from scipy.optimize import minimize
+import numpy as np
+import sys
+
+x = np.arange(0,6,0.5)
+y = x * 5 + 3
+
+res = minimize(naive_loss,
+               x0 = [0,0], 
+               args = (x,y))
+
+res
+```
+
+- Looking at these results, it's clear that something isn't right - why?
+
+    + The problem is we created a loss function that isn't minimized at $0$. 
+    + We can visualize this loss function by generating a matrix of values for various combinations of $m$ and $b$ and plotting these values where $x = m$, $y = b$, and $z = \text{Loss}$ this plot is shown below.
+
+```{r, out.width='100%', echo=FALSE}
+library(plotly)
+slope <- seq(0, 10, 0.1)
+intercept <- seq(0, 10, 0.1)
+loss_n <- matrix(NA, nrow = length(slope), ncol = length(intercept))
+
+for(i in 1:length(slope)) {
+  
+    for(j in 1:length(intercept)) {
+    
+        loss_n[i,j] <- sum((df$y - slope[i] * df$x - intercept[j]))
+    
+    }
+  
+}
+
+# Generate a 3D surface plot using plotly
+p = plot_ly(z = loss_n,
+            x = slope, 
+            y = intercept, 
+            width = 700, 
+            height = 700) %>% 
+    add_surface(contours = list(z = list(show = TRUE,
+                                         usecolormap = TRUE,
+                                         highlightcolor = "#ff0000",
+                                         project = list(z = TRUE))))
+```
+
+<br>`r p`<br>
+
+## A good loss function
+
+- Another possible loss function would involve taking the absolute value of the errors -- we know this function is minimized at zero
+
+$$
+Loss_{_{absolute}}(\mathbf{y},\mathbf{x},m,b) = \sum_{i=1}^N \Big\vert y_i-m\times x_i-b\Big\vert.
+$$
+
+- Once again let's define our <u>OK</u> loss function 
+
+```{python absolute_loss}
+def absolute_loss(params, x,y):
+
+  if len(params) != 2: sys.exit("Need 2 parameters -- dummy!") 
+
+  m = params[0]
+  b = params[1]
+
+  loss = 0
+
+  for i in range(len(y)):
+    loss = loss + np.abs(y[i] - m * x[i] - b)
+
+  return(loss)
+```
+
+- Now, let's use SciPy's `minimize()` function to find the values of $m$ and $b$ minimize the loss function and results in a model that best-fits the data  
+
+```{python}
+from scipy.optimize import minimize
+import numpy as np
+import sys
+
+x = np.arange(0,6,0.5)
+y = x * 5 + 3
+
+res = minimize(absolute_loss,
+               x0 = [0,0], 
+               args = (x,y))
+
+res
+```
+
+- Let's visualize this loss function -- like we did before
+
+```{r, out.width='100%', echo=FALSE}
+slope <- seq(0, 10, 0.1)
+intercept <- seq(0, 10, 0.1)
+
+loss_a <- matrix(NA, nrow = length(slope), ncol = length(intercept))
+
+for(i in 1:length(slope)) {
+  
+    for(j in 1:length(intercept)) {
+    
+        loss_a[i,j] <- sum(abs(df$y - slope[i] * df$x - intercept[j]))
+    
+    }
+  
+}
+
+# Generate a 3D surface plot using plotly
+p = plot_ly(z = loss_a,
+            x = slope, 
+            y = intercept, 
+            width = 700, 
+            height = 700) %>% 
+    add_surface(contours = list(z = list(show = TRUE,
+                                         usecolormap = TRUE,
+                                         highlightcolor = "#ff0000",
+                                         project = list(z = TRUE))))
+```
+
+<br>`r p`<br>
+
+## A better loss function
+
+- The problem is that linear functions are unconstrained
+
+- A better option would be to propose a loss functions that is convex, such as 
+
+$$
+Loss_{_{convex}}(\mathbf{y},\mathbf{x},m,b) = \sum_{i=1}^N \Big( y_i-m\times x_i-b\Big)^2.
+$$
+
+- Note that we are minimizing the squared distances between the observed values and the proposed model - hence this is called <focus>least squares optimization</focus>
+
+- For the last time let's define our <u>convex</u> loss function 
+
+```{python convex_loss}
+def convex_loss(params, x,y):
 
   if len(params) != 2: sys.exit("Need 2 parameters -- dummy!") 
 
@@ -249,6 +440,8 @@ def naive_loss(params, x,y):
   return(loss)
 ```
 
+- Now, let's use SciPy's `minimize()` function to find the values of $m$ and $b$ minimize the loss function and results in a model that best-fits the data  
+
 ```{python}
 from scipy.optimize import minimize
 import numpy as np
@@ -257,18 +450,47 @@ import sys
 x = np.arange(0,6,0.5)
 y = x * 5 + 3
 
-#naive_loss([5,1],[x],[y])
-
-res = minimize(naive_loss,
+res = minimize(convex_loss,
                x0 = [0,0], 
                args = (x,y))
 
 res
 ```
 
+- Let's visualize this loss function -- like we did for the last two 
+
+```{r, out.width='100%', fig.height=9, echo=FALSE}
+slope <- seq(0, 10, 0.1)
+intercept <- seq(0, 10, 0.1)
+
+loss2 <- matrix(NA, nrow = length(slope), ncol = length(intercept))
+
+for(i in 1:length(slope)) {
+  
+    for(j in 1:length(intercept)) {
+    
+        loss2[i,j] <- sum((df$y - slope[i] * df$x - intercept[j])^2)
+    
+    }
+  
+}
+
+p = plot_ly(z = loss2, 
+            x = slope, 
+            y = intercept, 
+            width = 700, 
+            height = 700) %>% 
+    add_surface(contours = list(z = list(show = TRUE,
+                                         usecolormap = TRUE,
+                                         highlightcolor = "#ff0000",
+                                         project = list(z = TRUE))))
+```
+
+<br>`r p`<br>
+
 ## How can I know which algorithm to choose?
 
 - Model selection is part art and part science
 
-```{r child="modeling_regression.Rmd", eval=!T}
+```{r child="modeling_regression.Rmd", eval=T}
 ```
